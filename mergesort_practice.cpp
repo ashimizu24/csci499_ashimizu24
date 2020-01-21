@@ -16,9 +16,6 @@ int main()
 	Node* head = new Node(3);
 	head->next = first;
 
-	// for(Node* node = head; node != NULL; node = node->next){
-	// 	cout << node->data << "\n";
-	// }
 	split(head, 6);
 
     return 0;

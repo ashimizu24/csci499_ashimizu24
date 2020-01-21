@@ -43,7 +43,6 @@ void split(Node* start, int size)
 	    for(int i=0; i<middle; i++){
 	    	temp = temp->next;
 	    }
-	    //cout << "middle " << temp->data << "\n";
 	    //temp is now beginning of the right side
 
 	    split(start, middle);
