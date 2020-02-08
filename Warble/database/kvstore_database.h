@@ -66,11 +66,15 @@ struct Warble {
   }
 };
 
-class UserMap {
+// Database class - holds unordered map with all warble information
+// key - prefix (what type of data) + id (user id/warble id) 
+// value - struct object serialized into string
+class KVStoreDb {
 public:
-  std::unordered_map<std::string,int> GetDb();
+  std::unordered_map<std::string,int> GetDb(); // key - prefix (what type of data) + id (user id/warble id) 
+                                               // value - struct object serialized into string
 
-  User GetUser(std::string username);
+  User GetUser(std::string username);  
   void AddUser(std::string username);
   int GetUserId(std::string username);
 
