@@ -6,6 +6,7 @@
 // Macros for prefixes 
 #define USR_PRE "USR"
 #define WARB_PRE "WAR"
+#define REPLY_PRE "RE"
 
 // Macros for warble id
 #define WARBLE_CNT 0

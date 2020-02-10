@@ -5,6 +5,7 @@ std::unordered_map<std::string,std::string> GetDb()
   return db;
 }
 
+// Takes in username of the user that should be added to the db
 void AddUser(std::string username)
 {
 	User user = new User(username, USER_CNT);
@@ -14,6 +15,7 @@ void AddUser(std::string username)
 	USER_CNT++;
 }
 
+// Takes in username of the user and searches in the database for user
 User GetUser(std::string username)
 {
 	std::string key = USR_PRE + username;

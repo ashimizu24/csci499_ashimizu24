@@ -18,9 +18,6 @@ class DBTest : public ::testing::Test {
      // You can do clean-up work that doesn't throw exceptions here.
   }
 
-  // If the constructor and destructor are not enough for setting up
-  // and cleaning up each test, you can define the following methods:
-
   void SetUp() override {
      // Code here will be called immediately after the constructor (right
      // before each test).
@@ -31,14 +28,16 @@ class DBTest : public ::testing::Test {
      // before the destructor).
   }
 
-  // Class members declared here can be used by all tests in the test suite
-  // for Foo.
 };
 
 TEST(Database, User) {
 	UserMap* map;
+  EXPECT_EQ(map->GetUserId("ayashimizu"), "ayashimizu not found");
+
 	map->AddUser("ayashimizu");
 	EXPECT_EQ(map->GetUserId("ayashimizu"), 0);
+
+
 }
 
 int main(int argc, char **argv) {
