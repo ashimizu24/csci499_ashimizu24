@@ -15,6 +15,7 @@ void AddUser(std::string username)
 	USER_CNT++;
 }
 
+
 // Takes in username of the user and searches in the database for user
 User GetUser(std::string username)
 {

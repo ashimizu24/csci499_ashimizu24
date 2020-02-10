@@ -87,3 +87,4 @@ private:
   std::unordered_map<std::string, std::string> db; //database mapping key (prefix+id/username) to serialized struct
 
 };
+
