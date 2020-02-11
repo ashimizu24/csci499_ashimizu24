@@ -16,8 +16,20 @@ DEFINE_string(follow, "", "Starts following the given username. Enter as -follow
 DEFINE_string(read, "", "Reads the warble thread starting at the given id. Enter as -read <warble id>");
 DEFINE_string(profile, "", "Gets the user’s profile of following and followers. Enter as -profile");
 
-int main(int argc, char *argv[]) {
+void RegisterUser(std::string username)
+{
+  ClientContext context;
+  warble::RegisteruserRequest* newuserrequest;
+  newuserrequest->set_username(username);
+
+  Status status = stub_->GetFeature(&context, newuserrequest, reply);
+}
+
+int main(int argc, char *argv[]) 
+{
   gflags::ParseCommandLineFlags(&argc, &argv, true);
+
+//  grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()); Create Func client with this as parameter
 
   GOOGLE_PROTOBUF_VERIFY_VERSION;
   
@@ -31,9 +43,7 @@ int main(int argc, char *argv[]) {
   // If registeruser flag triggered with argument - add user
   if (FLAGS_registeruser != "")
   {
-    warble::RegisteruserRequest* newuser = new warble::RegisteruserRequest();
-  	newuser->set_username(FLAGS_registeruser);
-    // TODO - GRPC call
+    RegisterUser(FLAGS_registeruser);
   	
   }
 
