@@ -37,7 +37,6 @@ TEST(Database, User) {
 	map->AddUser("ayashimizu");
 	EXPECT_EQ(map->GetUserId("ayashimizu"), 0);
 
-
 }
 
 int main(int argc, char **argv) {
