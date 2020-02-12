@@ -1,7 +1,6 @@
 #include <iostream>
 #include <getopt.h>
 #include <string>
-#include <gflags/gflags.h>
 
 #include "func_server.h"
 
@@ -11,10 +10,10 @@ void RunServer() {
   std::string server_address("0.0.0.0:50051");
   FuncHandler service; //TODO: implement FuncHandler class
 
-  ServerBuilder builder;
+  grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
-  std::unique_ptr<Server> server(builder.BuildAndStart());
+  std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
   std::cout << "Func server listening on " << server_address << std::endl;
   server->Wait();
 }
