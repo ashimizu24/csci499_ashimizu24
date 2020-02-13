@@ -1,7 +1,9 @@
 #include <iostream>
 #include <getopt.h>
 #include <string>
+
 #include <gflags/gflags.h>
+#include <glog/logging.h>
 
 #include "../kvstore/warble.pb.h"
 
@@ -16,8 +18,7 @@ DEFINE_string(follow, "", "Starts following the given username. Enter as -follow
 DEFINE_string(read, "", "Reads the warble thread starting at the given id. Enter as -read <warble id>");
 DEFINE_string(profile, "", "Gets the user’s profile of following and followers. Enter as -profile");
 
-void RegisterUser(std::string username)
-{
+void RegisterUser(const std::string username) {
   ClientContext context;
   warble::RegisteruserRequest* newuserrequest;
   newuserrequest->set_username(username);
@@ -25,26 +26,22 @@ void RegisterUser(std::string username)
   Status status = stub_->GetFeature(&context, newuserrequest, reply);
 }
 
-int main(int argc, char *argv[]) 
-{
+int main(int argc, char *argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
-
-//  grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials()); Create Func client with this as parameter
+  // Initialize Google's logging library.
+  google::InitGoogleLogging(argv[0]);
 
   GOOGLE_PROTOBUF_VERIFY_VERSION;
   
   /// Error check - user was not defined for flags that require it (all except registeruser)
-  if (FLAGS_user == "" && FLAGS_registeruser == "")
-  {
-  	std::cout << "User not defined" << std::endl;
+  if (FLAGS_user.empty() && FLAGS_registeruser.empty()) {
+    LOG(INFO) << "User not defined";
   	return 1;
   }
 
   // If registeruser flag triggered with argument - add user
-  if (FLAGS_registeruser != "")
-  {
+  if (FLAGS_registeruser != "") {
     RegisterUser(FLAGS_registeruser);
-  	
   }
 
   google::protobuf::ShutdownProtobufLibrary();

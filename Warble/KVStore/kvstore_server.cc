@@ -6,8 +6,6 @@
   // Returns a result that indicates whether the put was successful
 Status put(ServerContext* context, const PutRequest request, PutReply reply) override {
   // TODO - implement getting request and putting it in kvstore
-  UserMap umap = new UserMap();
-  umap.adduser(context.)
   return Status::OK;
 }
 
@@ -15,14 +13,6 @@ Status put(ServerContext* context, const PutRequest request, PutReply reply) ove
 Status get(ServerContext* context, const stream GetRequest request, ServerWriter<GetReply>* writer) override {
 	// TODO - implement gett
 	// replylist should be list of values under that key
-  for (const GetReply& r : replylist) {
-    if (f.location().longitude() >= left &&
-      f.location().longitude() <= right &&
-      f.location().latitude() >= bottom &&
-      f.location().latitude() <= top) {
-      writer->Write(f);
-    }
-  }
   return Status::OK;
 }
 
