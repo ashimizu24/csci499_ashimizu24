@@ -31,11 +31,16 @@ class DBTest : public ::testing::Test {
 };
 
 TEST(Database, User) {
-	UserMap* map;
-  EXPECT_EQ(map->GetUserId("ayashimizu"), "ayashimizu not found");
+	KVStoreDb kvstore;
+  EXPECT_EQ(kvstore.get("ayashimizu"), "ayashimizu not found");
 
-	map->AddUser("ayashimizu");
-	EXPECT_EQ(map->GetUserId("ayashimizu"), 0);
+	kvstore.put("ayashimizu", "ayashimizu data");
+	EXPECT_EQ(kvstore.get("ayashimizu"), "ayashimizu data");
+
+  kvstore.put("user2", "I am user 2");
+  kvstore.put("user3", "this is user 3's data");
+  kvstore.put("user4", "user 4 data");
+  EXPECT_EQ(kvstore.get("user3"), "this is user 3's data");
 
 }
 
