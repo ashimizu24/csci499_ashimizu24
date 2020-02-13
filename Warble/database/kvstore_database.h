@@ -1,6 +1,7 @@
 #include <string>
 #include <unordered_map>
 #include <iostream>
+#include <functional>
 #include <vector>
 
 // Database class - holds unordered map with all warble information
