@@ -4,7 +4,8 @@
 
 #include "func_server.h"
 
-//to compile: g++ func_main.cc -o func_main -lgflags -pthread -lprotobuf -lpthread
+// Func Server spins up once to populate the function names, etc
+
 
 void RunServer() {
   std::string server_address("0.0.0.0:50051");

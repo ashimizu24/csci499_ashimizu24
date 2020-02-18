@@ -3,7 +3,6 @@
 #include <string>
 
 #include <gflags/gflags.h>
-#include <glog/logging.h>
 
 #include "../kvstore/warble.pb.h"
 
@@ -20,10 +19,13 @@ DEFINE_string(profile, "", "Gets the user’s profile of following and followers
 
 void RegisterUser(const std::string username) {
   ClientContext context;
-  warble::RegisteruserRequest* newuserrequest;
-  newuserrequest->set_username(username);
+  warble::RegisteruserRequest newuserrequest;
+  warble::RegisteruserReply reply;
 
-  Status status = stub_->GetFeature(&context, newuserrequest, reply);
+  newuserrequest.set_username(username);
+  // QUESTION - do we create and pass in an event request here?
+ 
+  Status status = stub_->GetFeature(&context, newuserrequest, &reply);
 }
 
 int main(int argc, char *argv[]) {
