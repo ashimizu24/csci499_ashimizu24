@@ -32,15 +32,34 @@ class DBTest : public ::testing::Test {
 
 TEST(Database, User) {
 	KVStoreDb kvstore;
-  EXPECT_EQ(kvstore.get("ayashimizu"), "ayashimizu not found");
+  EXPECT_EQ(kvstore.Get("ayashimizu").first, 0);
 
-	kvstore.put("ayashimizu", "ayashimizu data");
-	EXPECT_EQ(kvstore.get("ayashimizu"), "ayashimizu data");
+	kvstore.Put("ayashimizu", "ayashimizu data");
+	EXPECT_EQ(kvstore.Get("ayashimizu").first, 1);
+  EXPECT_EQ(kvstore.Get("ayashimizu").second.size(), 1);
 
-  kvstore.put("user2", "I am user 2");
-  kvstore.put("user3", "this is user 3's data");
-  kvstore.put("user4", "user 4 data");
-  EXPECT_EQ(kvstore.get("user3"), "this is user 3's data");
+  for(int i=0; i<kvstore.Get("ayashimizu").second.size(); i++) {
+    EXPECT_EQ(kvstore.Get("ayashimizu").second.at(i), "ayashimizu data");
+  }
+
+  kvstore.Remove("ayashimizu");
+  EXPECT_EQ(kvstore.Get("ayashimizu").first, 0);
+
+  kvstore.Put("ayashimizu", "ayashimizu data0");
+  kvstore.Put("notaya", "hello");
+  kvstore.Put("ayashimizu", "ayashimizu data1");
+
+  EXPECT_EQ(kvstore.Get("ayashimizu").second.size(), 2);
+
+  for(int i=0; i<kvstore.Get("ayashimizu").second.size(); i++) {
+    EXPECT_EQ(kvstore.Get("ayashimizu").second.at(i), "ayashimizu data" + std::to_string(i));
+  }
+  
+
+  // kvstore.Put("user2", "I am user 2");
+  // kvstore.Put("user3", "this is user 3's data");
+  // kvstore.Put("user4", "user 4 data");
+  // EXPECT_EQ(kvstore.Get("user3"), "this is user 3's data");
 
 }
 
