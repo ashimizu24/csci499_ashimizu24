@@ -1,3 +1,5 @@
+#include <google/protobuf/any.h>
+
 #include "func_server.h"
 #include "protobuf-3.11.2/src/google/protobuf/stubs/status.h"
 
@@ -25,7 +27,7 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
 	// it to the warble code 
   switch(request.event_type()) {
 	case kRegisterUser:
-      warbleserver.CreateUser();
+      warbleserver.CreateUser(request.payload());
 	case kWarble:
 	  warbleserver.CreateWarble();
 	case kFollow:
