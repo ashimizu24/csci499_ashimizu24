@@ -1,3 +1,5 @@
+#include <grpcpp/grpcpp.h>
+
 #include "kvstore.pb.h"
 #include "kvstore.cc"
 #include "kvstore_server.h"
@@ -6,23 +8,14 @@
   // Returns a result that indicates whether the put was successful
 Status put(ServerContext* context, const PutRequest request, PutReply reply) override {
   // TODO - implement getting request and putting it in kvstore
-  UserMap umap = new UserMap();
-  umap.adduser(context.)
+  kvstore_client.Put(request.key(), request.value());
   return Status::OK;
 }
 
   // Returns a previously stored value or values under that key or nothing if the key is not present in the store
-Status get(ServerContext* context, const stream GetRequest request, ServerWriter<GetReply>* writer) override {
+Status get(ServerContext* context, ServerReaderWriter<GetReply, GetRequest> *stream) override {
 	// TODO - implement gett
-	// replylist should be list of values under that key
-  for (const GetReply& r : replylist) {
-    if (f.location().longitude() >= left &&
-      f.location().longitude() <= right &&
-      f.location().latitude() >= bottom &&
-      f.location().latitude() <= top) {
-      writer->Write(f);
-    }
-  }
+	// stream->write() and stream->read() to call ServerReaderWriter
   return Status::OK;
 }
 

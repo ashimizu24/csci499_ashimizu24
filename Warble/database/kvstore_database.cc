@@ -1,7 +1,7 @@
 #include "kvstore_database.h"
 
 // Insert given key and value pair into the database
-void KVStoreDb::Put(const std::string key, const std::string value) {
+void KVStoreDb::Put(const std::string key, const std::optional<std::vector<std::string>> value) {
   db.insert ( {key, value} );
 }
 

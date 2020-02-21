@@ -10,7 +10,7 @@
 class KVStoreDb {
 
 public:
-  void Put(const std::string key, const std::string value); // Insert given key and value pair into the database
+  void Put(const std::string key, const std::optional<std::vector<std::string>> value); // Insert given key and value pair into the database
   std::pair<bool, std::vector<std::string> > Get(const std::string key); // Based on a given key - get the value associated from the database
   void Remove(std::string key); // Remove data from the database from a given key
 
