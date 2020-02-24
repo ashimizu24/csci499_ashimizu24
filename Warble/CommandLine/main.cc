@@ -23,20 +23,20 @@ DEFINE_string(follow, "", "Starts following the given username. Enter as -follow
 DEFINE_string(read, "", "Reads the warble thread starting at the given id. Enter as -read <warble id>");
 DEFINE_string(profile, "", "Gets the user’s profile of following and followers. Enter as -profile");
 
-void FuncClient::RegisterUser(const std::string username) {
+void FuncClient::RegisterUser(const std::string& username) {
   grpc::ClientContext context;
-  /* Create new user request object */
+  // Create new user request object 
   warble::RegisteruserRequest newuserrequest;
   newuserrequest.set_username(username);
 
-  /* Pack registeruserrequest into an eventrequest payload */
+  // Pack registeruserrequest into an eventrequest payload 
   func::EventRequest request;
   request.set_event_type(kRegisterUser);
   google::protobuf::Any payload;
   payload.PackFrom(newuserrequest);
   request.set_allocated_payload(&payload);
 
-  /* Unpack response from GRPC */
+  // Unpack response from GRPC 
   func::EventReply reply;
   warble::RegisteruserReply newuserreply;
  

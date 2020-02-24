@@ -22,5 +22,6 @@ void RunServer() {
 int main(int argc, char *argv[])
 {
   RunServer();
+  // TODO: populate enum values
   return 0;
 }
