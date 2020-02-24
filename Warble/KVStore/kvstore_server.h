@@ -1,8 +1,9 @@
 #include "kvstore.pb.h"
+#include "../database/kvstore_database.h"
 
 //Service implementations for kvstore
 class KeyValueStoreImpl final : public KeyValueStore::Service {
-  public:
+public:
   // Returns a result that indicates whether the put was successful
   Status put(ServerContext* context, const PutRequest request, PutReply reply) override;
 
@@ -11,6 +12,9 @@ class KeyValueStoreImpl final : public KeyValueStore::Service {
 
   // deletes all previously stored values under that key
   Status remove(ServerContext* context, const RemoveRequest request, RemoveReply reply) override;
-  
+
+
+private:
+  KVStoreDb kvstore_client; //kvstore database member variable
 
 };
