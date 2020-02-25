@@ -30,22 +30,22 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
       warblecode::CreateUser(request.payload());
       break;
 	case kWarble:
-	  wwarblecode::CreateWarble();
+	    warblecode::CreateWarble(request.payload());
       break;
 	case kFollow:
-	  warblecode::Follow();
+	    warblecode::Follow(request.payload());
       break;
   	case kRead:
-  	  warblecode::Read();
+  	  warblecode::Read(request.payload());
       break;
   	case kProfile:
-  	  warblecode::Profile();
+  	  warblecode::Profile(request.payload());
       break;
   	case kReply:
-  	  warblecode::CreateWarbleReply();
+  	  warblecode::CreateWarbleReply(request.payload());
       break;
     default:
-      return grpc::Status::NOT_FOUND;
+      return grpc::Status::OK; // Change to Status::NOT_FOUND
   }
 	
   return grpc::Status::OK;

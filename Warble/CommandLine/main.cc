@@ -10,7 +10,6 @@
 #include "../kvstore/warble.pb.h"
 #include "../kvstore/func.grpc.pb.h"
 #include "main.h"
-#include "events.h"
 
 //to compile: g++ main.cc -o main -lgflags -pthread -lprotobuf -lpthread
 
@@ -39,6 +38,99 @@ void FuncClient::RegisterUser(const std::string& username) {
   // Unpack response from GRPC 
   func::EventReply reply;
   warble::RegisteruserReply newuserreply;
+  // TODO - unpack eventreply into registeruserreply
+ 
+  grpc::Status status = stub_->event(&context, request, &reply);
+}
+
+// If a new independent warble is created - the parent warble id will be -1
+void FuncClient::CreateWarble(const std::string& username, const std::string& text) {
+  FuncClient::CreateWarbleReply(username, text, "-1", kReply);
+}
+
+void FuncClient::CreateWarbleReply(const std::string& username, const std::string& text, const std::string& id, const WarbleTypes type) {
+  grpc::ClientContext context;
+  // Create new warble request object 
+  warble::WarbleRequest newwarblerequest;
+  newwarblerequest.set_username(username);
+  newwarblerequest.set_text(text);
+  newwarblerequest.set_parent_id(id);
+
+  // Pack registeruserrequest into an eventrequest payload 
+  func::EventRequest request;
+  request.set_event_type(type);
+  google::protobuf::Any payload;
+  payload.PackFrom(newwarblerequest);
+  request.set_allocated_payload(&payload);
+
+  // Unpack response from GRPC 
+  func::EventReply reply;
+  warble::WarbleReply warblereply;
+  // TODO - unpack eventreply into warblereply
+ 
+  grpc::Status status = stub_->event(&context, request, &reply);
+}
+
+void FuncClient::Follow(const std::string& username, const std::string& usernametofollow) {
+  grpc::ClientContext context;
+  
+  warble::FollowRequest followrequest;
+  followrequest.set_username(username);
+  followrequest.set_to_follow(usernametofollow);
+
+  // Pack followrequest into an eventrequest payload 
+  func::EventRequest request;
+  request.set_event_type(kFollow);
+  google::protobuf::Any payload;
+  payload.PackFrom(followrequest);
+  request.set_allocated_payload(&payload);
+
+  // Unpack response from GRPC 
+  func::EventReply reply;
+  warble::FollowReply followreply;
+  // TODO - Unpack eventreply into followreply 
+ 
+  grpc::Status status = stub_->event(&context, request, &reply);
+}
+
+void FuncClient::Read(const std::string& warbleid) {
+  grpc::ClientContext context;
+  
+  warble::ReadRequest readrequest;
+  readrequest.set_warble_id(warbleid);
+
+  // Pack readrequest into an eventrequest payload 
+  func::EventRequest request;
+  request.set_event_type(kRead);
+  google::protobuf::Any payload;
+  payload.PackFrom(readrequest);
+  request.set_allocated_payload(&payload);
+
+  // Unpack response from GRPC 
+  func::EventReply reply;
+  warble::ReadReply readreply;
+  // TODO - unpack eventreply into readreply
+ 
+  grpc::Status status = stub_->event(&context, request, &reply);
+}
+
+void FuncClient::Profile(const std::string& username) {
+  grpc::ClientContext context;
+  
+  warble::ProfileRequest profrequest;
+  profrequest.set_username(username);
+
+  // Pack readrequest into an eventrequest payload 
+  func::EventRequest request;
+  request.set_event_type(kProfile);
+  google::protobuf::Any payload;
+  payload.PackFrom(profrequest);
+  request.set_allocated_payload(&payload);
+
+  // Unpack response from GRPC 
+  func::EventReply reply;
+  warble::ProfileReply profreply;
+  //TODO - unpack eventreply into profreply
  
   grpc::Status status = stub_->event(&context, request, &reply);
 }
@@ -59,8 +151,20 @@ int main(int argc, char *argv[]) {
   }
 
   // If registeruser flag triggered with argument - add user
-  if (FLAGS_registeruser != "") {
+  if (!FLAGS_registeruser.empty()) {
     func_client.RegisterUser(FLAGS_registeruser);
+  }
+  else if(!FLAGS_warble.empty()) {
+    func_client.CreateWarble(FLAGS_user, FLAGS_warble);
+  }
+  else if(!FLAGS_warble.empty() && !FLAGS_reply.empty()) {
+    func_client.CreateWarbleReply(FLAGS_user, FLAGS_warble, FLAGS_reply, kWarble);
+  }
+  else if(!FLAGS_read.empty()) {
+    func_client.Read(FLAGS_read);
+  }
+  else if(!FLAGS_profile.empty()) {
+    func_client.Profile(FLAGS_user);
   }
 
   google::protobuf::ShutdownProtobufLibrary();
