@@ -4,6 +4,8 @@
 
 #include <grpcpp/grpcpp.h>
 #include "events.h"
+#include "../kvstore/warble.pb.h"
+#include "../kvstore/func.grpc.pb.h"
 
 class FuncClient {
 public:
@@ -12,7 +14,7 @@ public:
       : stub_(func::KeyValueStore::NewStub(channel)) {}
 
   // Creates a new user with given username 
-  void RegisterUser(const std::string& username);   
+  grpc::Status RegisterUser(const std::string& username);   
   // Creates a new warble with given username and text  
   void CreateWarble(const std::string& username, const std::string& text); 
   // Creates a new warble that is responding to another warble

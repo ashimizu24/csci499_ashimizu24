@@ -25,30 +25,50 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
 {
 	// TODO - all this does is take in the call and find the corresponding function call from the table and then sending
 	// it to the warble code 
+  std::cout << "getting event\n";
   switch(request.event_type()) {
 	case kRegisterUser:
-      warblecode::CreateUser(request.payload());
+      wc_.CreateUser(request.payload());
       break;
 	case kWarble:
-	    warblecode::CreateWarble(request.payload());
+	    wc_.CreateWarble(request.payload());
       break;
 	case kFollow:
-	    warblecode::Follow(request.payload());
+	    wc_.Follow(request.payload());
       break;
   	case kRead:
-  	  warblecode::Read(request.payload());
+  	  wc_.Read(request.payload());
       break;
   	case kProfile:
-  	  warblecode::Profile(request.payload());
+  	  wc_.Profile(request.payload());
       break;
   	case kReply:
-  	  warblecode::CreateWarbleReply(request.payload());
+  	  wc_.CreateWarbleReply(request.payload());
       break;
     default:
       return grpc::Status::OK; // Change to Status::NOT_FOUND
   }
 	
   return grpc::Status::OK;
+}
+
+void RunServer() {
+  std::string server_address("0.0.0.0:50051");
+  FuncHandler service; //TODO: implement FuncHandler class
+
+  grpc::ServerBuilder builder;
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.RegisterService(&service);
+  std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+  std::cout << "Func server listening on " << server_address << std::endl;
+  server->Wait();
+}
+
+int main(int argc, char *argv[])
+{
+  RunServer();
+  // TODO: populate enum values
+  return 0;
 }
 
 //only sends function call 

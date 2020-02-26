@@ -22,4 +22,6 @@ public:
   // Where all the inputs come in 
   grpc::Status event(grpc::ServerContext* context, const func::EventRequest request, func::EventReply reply);
 
+  private:
+  	WarbleCode wc_;
 };

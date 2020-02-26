@@ -27,7 +27,8 @@ LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
            -lglog\
            -lgflags\
            -lprotoc\
-           -lprotobuf
+           -lprotobuf\
+           -Igoogle/protobuf
 else
 LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
            -pthread\
@@ -36,7 +37,8 @@ LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
            -lglog\
            -lgflags\
            -lprotoc\
-           -lprotobuf
+           -lprotobuf\
+           -Igoogle/protobuf
 endif
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
@@ -46,19 +48,18 @@ PROTOS_PATH = ../protos
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check main func_server kvstore_server warble
+all: system-check main func_server kvstore_server
 
 main: ../commandline/main.o func.pb.o func.grpc.pb.o kvstore.pb.o kvstore.grpc.pb.o warble.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-func_server: func.pb.o func.grpc.pb.o func_server.o warble_code.o
-	$(CXX) $^ $(LDFLAGS) -o $@ -I /home/vagrant/grpc/third_party/protobuf/src/google/protobuf/any.h
+func_server: func.pb.o func.grpc.pb.o func_server.o warble_code.o warble.pb.o 
+	$(CXX) $^ $(LDFLAGS) -o $@
 
 kvstore_server: kvstore.pb.o kvstore.grpc.pb.o kvstore_server.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-warble: warble.pb.o
-	$(CXX) $^ $(LDFLAGS) -o $@ -I /home/vagrant/grpc/third_party/protobuf/src/google/protobuf/any.h
+
 
 # greeter_async_client: helloworld.pb.o helloworld.grpc.pb.o greeter_async_client.o
 # 	$(CXX) $^ $(LDFLAGS) -o $@

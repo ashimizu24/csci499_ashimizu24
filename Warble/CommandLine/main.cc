@@ -7,8 +7,8 @@
 #include <glog/logging.h>
 #include <google/protobuf/any.h>
 
-#include "../kvstore/warble.pb.h"
-#include "../kvstore/func.grpc.pb.h"
+#include "../kvstore/protobuf-3.11.2/src/google/protobuf/stubs/status.h"
+
 #include "main.h"
 
 //to compile: g++ main.cc -o main -lgflags -pthread -lprotobuf -lpthread
@@ -22,7 +22,7 @@ DEFINE_string(follow, "", "Starts following the given username. Enter as -follow
 DEFINE_string(read, "", "Reads the warble thread starting at the given id. Enter as -read <warble id>");
 DEFINE_string(profile, "", "Gets the user’s profile of following and followers. Enter as -profile");
 
-void FuncClient::RegisterUser(const std::string& username) {
+grpc::Status FuncClient::RegisterUser(const std::string& username) {
   grpc::ClientContext context;
   // Create new user request object 
   warble::RegisteruserRequest newuserrequest;
@@ -36,11 +36,12 @@ void FuncClient::RegisterUser(const std::string& username) {
   request.set_allocated_payload(&payload);
 
   // Unpack response from GRPC 
-  func::EventReply reply;
-  warble::RegisteruserReply newuserreply;
+  //func::EventReply reply;
+  ///warble::RegisteruserReply newuserreply;
   // TODO - unpack eventreply into registeruserreply
- 
-  grpc::Status status = stub_->event(&context, request, &reply);
+  std::cout << "creating user " << username << std::endl;
+  return grpc::Status::OK;
+  //grpc::Status status = stub_->event(&context, request, &reply);
 }
 
 // If a new independent warble is created - the parent warble id will be -1
@@ -167,6 +168,6 @@ int main(int argc, char *argv[]) {
     func_client.Profile(FLAGS_user);
   }
 
-  google::protobuf::ShutdownProtobufLibrary();
+  //google::protobuf::ShutdownProtobufLibrary();
   return 0;
 }
