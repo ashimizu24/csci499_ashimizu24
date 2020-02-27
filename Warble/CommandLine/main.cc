@@ -23,25 +23,26 @@ DEFINE_string(read, "", "Reads the warble thread starting at the given id. Enter
 DEFINE_string(profile, "", "Gets the user’s profile of following and followers. Enter as -profile");
 
 grpc::Status FuncClient::RegisterUser(const std::string& username) {
+  // Objects being passing into stub
   grpc::ClientContext context;
-  // Create new user request object 
+  func::EventRequest request;
+  func::EventReply reply;
+
+  // Warble objects
   warble::RegisteruserRequest newuserrequest;
+  warble::RegisteruserReply newuserreply;
+
+  // populate warble new user request object and pack event request
   newuserrequest.set_username(username);
 
-  // Pack registeruserrequest into an eventrequest payload 
-  func::EventRequest request;
   request.set_event_type(kRegisterUser);
   google::protobuf::Any payload;
   payload.PackFrom(newuserrequest);
-  request.set_allocated_payload(&payload);
-
-  // Unpack response from GRPC 
-  //func::EventReply reply;
-  ///warble::RegisteruserReply newuserreply;
+ // request.set_allocated_payload(&payload);
+  *request.mutable_payload() = payload;
+  
   // TODO - unpack eventreply into registeruserreply
-  std::cout << "creating user " << username << std::endl;
-  return grpc::Status::OK;
-  //grpc::Status status = stub_->event(&context, request, &reply);
+  grpc::Status status = stub_->event(&context, request, &reply);
 }
 
 // If a new independent warble is created - the parent warble id will be -1
