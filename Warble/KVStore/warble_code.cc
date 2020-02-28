@@ -4,6 +4,7 @@
 // TODO - warble_code needs a kvstore_server member so it can call put/get/remove via GRPC
 
   void WarbleCode::CreateWarble(google::protobuf::Any any) {
+    std::cout << "Creating warble\n";
     warble::Timestamp *timestamp = new warble::Timestamp();
     int64_t seconds = google::protobuf::util::TimeUtil::TimestampToSeconds(google::protobuf::util::TimeUtil::GetCurrentTime());
     int64_t useconds = google::protobuf::util::TimeUtil::TimestampToMicroseconds(google::protobuf::util::TimeUtil::GetCurrentTime());
@@ -20,6 +21,7 @@
     if (any.UnpackTo(&warble_request)) {
       // Add elements that were not in the WarbleRequest
       std::string key = WARB_PRE + std::to_string(warble_cnt);
+      std::cout << key << std::endl;
       new_warble.set_id(pchar);
       new_warble.set_allocated_timestamp(timestamp); 
 
@@ -39,6 +41,7 @@
   }
 
   void WarbleCode::CreateUser(google::protobuf::Any any) {
+     std::cout << "Creating user\n";
     // Create new user request object from unpacking payload
     warble::RegisteruserRequest newuserrequest;
     if (any.UnpackTo(&newuserrequest)) {

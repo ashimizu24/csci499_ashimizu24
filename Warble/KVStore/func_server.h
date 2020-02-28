@@ -9,10 +9,12 @@
 #include "warble_code.h"
 #include "../commandline/events.h" 
 
+using func::KeyValueStore;
+
 //TODO - compile error saying KeyValueStore has not been declared
 
 // Server that takes in processes requests from the commandline and redirects them to the kvstore
-class FuncHandler final : public func::KeyValueStore::Service { 
+class FuncHandler final : public KeyValueStore::Service { 
 public:
   // Hook processes messages and calls certain event types
   grpc::Status hook(grpc::ServerContext* context, const func::HookRequest request, func::HookReply reply);
@@ -20,8 +22,9 @@ public:
   grpc::Status unhook(grpc::ServerContext* context, const func::UnhookRequest request, func::UnhookReply reply);
 
   // Where all the inputs come in 
-  grpc::Status event(grpc::ServerContext* context, const func::EventRequest request, func::EventReply reply);
+  //grpc::Status event(grpc::ServerContext* context, const func::EventRequest request, func::EventReply reply) override;
+  grpc::Status event(grpc::ServerContext* context, const func::EventRequest* request, func::EventReply* response) override;
 
-  private:
-  	WarbleCode wc_;
+private:
+  WarbleCode wc_;
 };

@@ -7,9 +7,11 @@
 #include <glog/logging.h>
 #include <google/protobuf/any.h>
 
-#include "../kvstore/protobuf-3.11.2/src/google/protobuf/stubs/status.h"
-
 #include "main.h"
+
+using grpc::Channel;
+using grpc::ClientContext;
+using grpc::Status;
 
 //to compile: g++ main.cc -o main -lgflags -pthread -lprotobuf -lpthread
 
@@ -22,7 +24,7 @@ DEFINE_string(follow, "", "Starts following the given username. Enter as -follow
 DEFINE_string(read, "", "Reads the warble thread starting at the given id. Enter as -read <warble id>");
 DEFINE_string(profile, "", "Gets the user’s profile of following and followers. Enter as -profile");
 
-grpc::Status FuncClient::RegisterUser(const std::string& username) {
+void FuncClient::RegisterUser(const std::string& username) {
   // Objects being passing into stub
   grpc::ClientContext context;
   func::EventRequest request;
@@ -38,11 +40,16 @@ grpc::Status FuncClient::RegisterUser(const std::string& username) {
   request.set_event_type(kRegisterUser);
   google::protobuf::Any payload;
   payload.PackFrom(newuserrequest);
- // request.set_allocated_payload(&payload);
   *request.mutable_payload() = payload;
   
   // TODO - unpack eventreply into registeruserreply
   grpc::Status status = stub_->event(&context, request, &reply);
+  //return status;
+  if(status.ok()) {
+    std::cout << "worked\n";
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
+  }
 }
 
 // If a new independent warble is created - the parent warble id will be -1
@@ -63,7 +70,7 @@ void FuncClient::CreateWarbleReply(const std::string& username, const std::strin
   request.set_event_type(type);
   google::protobuf::Any payload;
   payload.PackFrom(newwarblerequest);
-  request.set_allocated_payload(&payload);
+  *request.mutable_payload() = payload;
 
   // Unpack response from GRPC 
   func::EventReply reply;
@@ -85,7 +92,7 @@ void FuncClient::Follow(const std::string& username, const std::string& username
   request.set_event_type(kFollow);
   google::protobuf::Any payload;
   payload.PackFrom(followrequest);
-  request.set_allocated_payload(&payload);
+  *request.mutable_payload() = payload;
 
   // Unpack response from GRPC 
   func::EventReply reply;
@@ -106,7 +113,7 @@ void FuncClient::Read(const std::string& warbleid) {
   request.set_event_type(kRead);
   google::protobuf::Any payload;
   payload.PackFrom(readrequest);
-  request.set_allocated_payload(&payload);
+  *request.mutable_payload() = payload;
 
   // Unpack response from GRPC 
   func::EventReply reply;
@@ -127,7 +134,7 @@ void FuncClient::Profile(const std::string& username) {
   request.set_event_type(kProfile);
   google::protobuf::Any payload;
   payload.PackFrom(profrequest);
-  request.set_allocated_payload(&payload);
+  *request.mutable_payload() = payload;
 
   // Unpack response from GRPC 
   func::EventReply reply;
@@ -138,14 +145,14 @@ void FuncClient::Profile(const std::string& username) {
 }
 
 int main(int argc, char *argv[]) {
+  FuncClient func_client(grpc::CreateChannel( "localhost:50000", grpc::InsecureChannelCredentials()));
+  
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   // Initialize Google's logging library.
   google::InitGoogleLogging(argv[0]);
 
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  FuncClient func_client(grpc::CreateChannel( "localhost:50000", grpc::InsecureChannelCredentials()));
-  
   /// Error check - user was not defined for flags that require it (all except registeruser)
   if (FLAGS_user.empty() && FLAGS_registeruser.empty()) {
     LOG(INFO) << "User not defined";
@@ -169,6 +176,6 @@ int main(int argc, char *argv[]) {
     func_client.Profile(FLAGS_user);
   }
 
-  //google::protobuf::ShutdownProtobufLibrary();
+  google::protobuf::ShutdownProtobufLibrary();
   return 0;
 }

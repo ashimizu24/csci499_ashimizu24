@@ -2,6 +2,9 @@
 
 #include "func_server.h"
 #include "protobuf-3.11.2/src/google/protobuf/stubs/status.h"
+#include <google/protobuf/text_format.h>
+#include <iostream>
+#include <string.h>
 
 // Hook processes messages and calls certain event types
 // hook done by operator (who's running the warble service) like warble hook is 17
@@ -21,29 +24,30 @@ grpc::Status FuncHandler::unhook(grpc::ServerContext* context, const func::Unhoo
 }
 
 // QUESTION - does this automatically get triggered when main sends the stub? or do we have to call it somewhere
-grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventRequest request, func::EventReply reply) 
-{
+grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventRequest* request, func::EventReply* response)  {
 	// TODO - all this does is take in the call and find the corresponding function call from the table and then sending
 	// it to the warble code 
-  std::cout << "getting event\n";
-  switch(request.event_type()) {
+  //std::cout << "getting event " << grpc::print(request->event_type) << std::endl;
+  std::cout << request->event_type() << std::endl;
+
+  switch(request->event_type()) {
 	case kRegisterUser:
-      wc_.CreateUser(request.payload());
+      wc_.CreateUser(request->payload());
       break;
 	case kWarble:
-	    wc_.CreateWarble(request.payload());
+	    wc_.CreateWarble(request->payload());
       break;
 	case kFollow:
-	    wc_.Follow(request.payload());
+	    wc_.Follow(request->payload());
       break;
   	case kRead:
-  	  wc_.Read(request.payload());
+  	  wc_.Read(request->payload());
       break;
   	case kProfile:
-  	  wc_.Profile(request.payload());
+  	  wc_.Profile(request->payload());
       break;
   	case kReply:
-  	  wc_.CreateWarbleReply(request.payload());
+  	  wc_.CreateWarbleReply(request->payload());
       break;
     default:
       return grpc::Status::OK; // Change to Status::NOT_FOUND
@@ -53,8 +57,8 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
 }
 
 void RunServer() {
-  std::string server_address("0.0.0.0:50051");
-  FuncHandler service; //TODO: implement FuncHandler class
+  std::string server_address("0.0.0.0:50000");
+  FuncHandler service; 
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
@@ -67,7 +71,7 @@ void RunServer() {
 int main(int argc, char *argv[])
 {
   RunServer();
-  // TODO: populate enum values
+  // TODO: populate enum values hook
   return 0;
 }
 

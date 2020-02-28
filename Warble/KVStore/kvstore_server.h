@@ -3,7 +3,8 @@
 #include "kvstore.pb.h"
 #include "kvstore.grpc.pb.h"
 #include "warble_code.h"
-#include "protobuf-3.11.2/src/google/protobuf/stubs/status.h"
+
+using grpc::Status;
 
 //Service implementations for kvstore
 class KeyValueStoreImpl final : public kvstore::KeyValueStore::Service {
