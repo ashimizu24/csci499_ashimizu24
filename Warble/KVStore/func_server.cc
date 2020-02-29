@@ -1,11 +1,8 @@
-#include <google/protobuf/any.h>
-
 #include "func_server.h"
-#include "protobuf-3.11.2/src/google/protobuf/stubs/status.h"
-#include <google/protobuf/text_format.h>
-#include <iostream>
-#include <string.h>
 
+#include <gflags/gflags.h>
+#include <glog/logging.h>
+#include <google/protobuf/any.h>
 // Hook processes messages and calls certain event types
 // hook done by operator (who's running the warble service) like warble hook is 17
 grpc::Status FuncHandler::hook(grpc::ServerContext* context, const func::HookRequest request, func::HookReply reply)  
@@ -58,7 +55,7 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
 
 void RunServer() {
   std::string server_address("0.0.0.0:50000");
-  FuncHandler service; 
+  FuncHandler service(grpc::CreateChannel( "localhost:50000", grpc::InsecureChannelCredentials()));
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

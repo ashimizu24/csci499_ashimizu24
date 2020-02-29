@@ -53,7 +53,7 @@ all: system-check main func_server kvstore_server
 main: ../commandline/main.o func.pb.o func.grpc.pb.o kvstore.pb.o kvstore.grpc.pb.o warble.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-func_server: func.pb.o func.grpc.pb.o func_server.o warble_code.o warble.pb.o 
+func_server: func.pb.o func.grpc.pb.o func_server.o warble_code.o warble.pb.o kvstore.grpc.pb.o kvstore.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 kvstore_server: kvstore.pb.o kvstore.grpc.pb.o kvstore_server.o

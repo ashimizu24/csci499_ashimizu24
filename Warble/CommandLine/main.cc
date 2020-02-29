@@ -3,7 +3,6 @@
 #include <string>
 
 #include <gflags/gflags.h>
-#include <grpcpp/grpcpp.h>
 #include <glog/logging.h>
 #include <google/protobuf/any.h>
 
