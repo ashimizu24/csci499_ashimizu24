@@ -1,6 +1,11 @@
 #include <sstream>
 #include <bitset>
-#include <grpcpp/grpcpp.h>
+
+#include <grpc/grpc.h>
+#include <grpcpp/server.h>
+#include <grpcpp/server_builder.h>
+#include <grpcpp/server_context.h>
+#include <grpcpp/security/server_credentials.h>
 #include <google/protobuf/any.pb.h>
 #include <google/protobuf/util/time_util.h>
 
@@ -19,8 +24,8 @@ using google::protobuf::Any;
 class WarbleCode{
 public:
 	// Creates the Func Client and instantiates a new stub to send requests
-  // WarbleCode(std::shared_ptr<grpc::Channel> channel)
-  //     : stub_(kvstore::KeyValueStore::NewStub(channel)) {}
+  WarbleCode(std::shared_ptr<grpc::Channel> channel)
+      : stub_(kvstore::KeyValueStore::NewStub(channel)) {}
 
   void CreateWarble(google::protobuf::Any any); /// Unpacks any response into warble
   void CreateUser(google::protobuf::Any any); // Unpacks any response into new user
@@ -28,8 +33,9 @@ public:
   void Follow(google::protobuf::Any any); // Unpacks any response into who follow request
   void Read(google::protobuf::Any any); // Unpacks any response into id of warble user wants to read
   void Profile(google::protobuf::Any any); // Unpacks ay response into username of profile to display
+ 
+  std::unique_ptr<kvstore::KeyValueStore::Stub> stub_;
 
 private:
   int warble_cnt = 0; // Unique warble id
-  //std::unique_ptr<kvstore::KeyValueStore::Stub> stub_;
 };

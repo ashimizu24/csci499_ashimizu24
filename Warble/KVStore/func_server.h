@@ -1,3 +1,8 @@
+#include <google/protobuf/text_format.h>
+#include <iostream>
+#include <string.h>
+#include <google/protobuf/any.h>
+
 #include <grpc/grpc.h>
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
@@ -16,6 +21,7 @@ using func::KeyValueStore;
 // Server that takes in processes requests from the commandline and redirects them to the kvstore
 class FuncHandler final : public KeyValueStore::Service { 
 public:
+  FuncHandler() : wc_(grpc::CreateChannel( "localhost:50000", grpc::InsecureChannelCredentials())) {}
   // Hook processes messages and calls certain event types
   grpc::Status hook(grpc::ServerContext* context, const func::HookRequest request, func::HookReply reply);
 
