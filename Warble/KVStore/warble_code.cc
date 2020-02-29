@@ -1,15 +1,5 @@
 #include "warble_code.h"
 
-// void PutRequest(std::string key, std::string value) {
-//   grpc::ClientContext context;
-//   func::PutRequest request;
-//   request.set_key(key);
-//   request.set_value(value);
-//   func::PutReply reply;
-
-//   grpc::Status status = stub_->event(&context, request, &reply);
-// }
-
 void WarbleCode::CreateWarble(google::protobuf::Any any) {
   std::cout << "Creating warble\n";
   warble::Timestamp *timestamp = new warble::Timestamp();
@@ -36,11 +26,10 @@ void WarbleCode::CreateWarble(google::protobuf::Any any) {
     new_warble.set_text(warble_request.text()); 
     new_warble.set_parent_id(warble_request.parent_id()); 
 
-    std::stringstream output;
-    //output << (std::bitset<sizeof(new_warble) * 8>(new_warble));
-    output.str(); 
+    std::string value;
+    new_warble.SerializeToString(&value);
     //TODO: make a pair of (key, output.str() ) and send to kvstore *PUT
-    //PutRequest(key, output);
+    PutRequest(key, key);
     
   }
 
@@ -54,10 +43,8 @@ void WarbleCode::CreateUser(google::protobuf::Any any) {
   warble::RegisteruserRequest newuserrequest;
   if (any.UnpackTo(&newuserrequest)) {
     std::string key = USR_PRE + newuserrequest.username();
-    std::stringstream output;
+  
 
-   // output << (std::bitset<sizeof(newuserrequest) * 8>(newuserrequest));
-    output.str(); 
     //TODO: make a pair of (key, output.str() ) and send to kvstore *PUT
   }
 }
@@ -90,3 +77,12 @@ void WarbleCode::Profile(google::protobuf::Any any) {
   
 }
 
+void WarbleCode::PutRequest(std::string key, std::string value) {
+  grpc::ClientContext context;
+  kvstore::PutRequest request;
+  request.set_key(key);
+  request.set_value(value);
+  kvstore::PutReply reply;
+
+  grpc::Status status = stub_->put(&context, request, &reply);
+}

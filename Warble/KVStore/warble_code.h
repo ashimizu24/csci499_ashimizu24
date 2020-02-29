@@ -1,4 +1,4 @@
-#include <sstream>
+#include <fstream>
 #include <bitset>
 #include <grpcpp/grpcpp.h>
 #include <grpc/grpc.h>
@@ -33,6 +33,8 @@ public:
   void Follow(google::protobuf::Any any); // Unpacks any response into who follow request
   void Read(google::protobuf::Any any); // Unpacks any response into id of warble user wants to read
   void Profile(google::protobuf::Any any); // Unpacks ay response into username of profile to display
+
+  void PutRequest(std::string key, std::string value);
  
   std::unique_ptr<kvstore::KeyValueStore::Stub> stub_;
 
