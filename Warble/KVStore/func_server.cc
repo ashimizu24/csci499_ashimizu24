@@ -25,8 +25,6 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
 	// TODO - all this does is take in the call and find the corresponding function call from the table and then sending
 	// it to the warble code 
   //std::cout << "getting event " << grpc::print(request->event_type) << std::endl;
-  std::cout << request->event_type() << std::endl;
-
   switch(request->event_type()) {
 	case kRegisterUser:
       wc_.CreateUser(request->payload());
@@ -35,13 +33,14 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
 	    wc_.CreateWarble(request->payload());
       break;
 	case kFollow:
-	    wc_.Follow(request->payload());
+      wc_.Follow(request->payload());
       break;
   	case kRead:
-  	  wc_.Read(request->payload());
+  	  *response->mutable_payload() = wc_.Read(request->payload());
       break;
   	case kProfile:
-  	  wc_.Profile(request->payload());
+      wc_.Profile(request->payload(), *response->mutable_payload());
+      //*response->mutable_payload() = any;
       break;
   	case kReply:
   	  wc_.CreateWarbleReply(request->payload());
@@ -55,7 +54,7 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
 
 void RunServer() {
   std::string server_address("0.0.0.0:50000");
-  FuncHandler service(grpc::CreateChannel( "localhost:50000", grpc::InsecureChannelCredentials()));
+  FuncHandler service(grpc::CreateChannel( "localhost:50002", grpc::InsecureChannelCredentials()));
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

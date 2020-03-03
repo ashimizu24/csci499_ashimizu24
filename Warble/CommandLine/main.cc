@@ -117,9 +117,27 @@ void FuncClient::Read(const std::string& warbleid) {
   // Unpack response from GRPC 
   func::EventReply reply;
   warble::ReadReply readreply;
-  // TODO - unpack eventreply into readreply
  
   grpc::Status status = stub_->event(&context, request, &reply);
+
+  if(status.ok()) {
+    std::cout << "worked \n";
+    if(reply.payload().UnpackTo(&readreply)){
+      std::vector<warble::Warble> warbles;
+      std::copy(readreply.warbles().begin(), readreply.warbles().end(), std::back_inserter(warbles));
+      std::cout << warbles.size();
+      for (warble::Warble warble : warbles) {
+        std::cout << "WARBLE " << warble.text() << std::endl; 
+      }
+      // std::cout << readreply.warbles_size() << std::endl;
+      // warble::Warble warble = readreply.warbles(0);
+      // std::cout << warble.text() << std::endl;
+      // std::cout << username << "'s followers are: " << profreply.followers(0) << std::endl;
+      // std::cout << username << " is following : " << profreply.following(0) << std::endl;
+    }
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
+  }
 }
 
 void FuncClient::Profile(const std::string& username) {
@@ -139,8 +157,19 @@ void FuncClient::Profile(const std::string& username) {
   func::EventReply reply;
   warble::ProfileReply profreply;
   //TODO - unpack eventreply into profreply
- 
   grpc::Status status = stub_->event(&context, request, &reply);
+
+  if(status.ok()) {
+    std::cout << "worked!!\n";
+    if(reply.payload().UnpackTo(&profreply)){
+      std::cout << profreply.followers_size() << std::endl;
+      // std::cout << username << "'s followers are: " << profreply.followers(0) << std::endl;
+      // std::cout << username << " is following : " << profreply.following(0) << std::endl;
+    }
+  } else {
+    std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
+  }
+
 }
 
 int main(int argc, char *argv[]) {
@@ -173,6 +202,9 @@ int main(int argc, char *argv[]) {
   }
   else if(!FLAGS_profile.empty()) {
     func_client.Profile(FLAGS_user);
+  }
+  else if(!FLAGS_follow.empty()) {
+    func_client.Follow(FLAGS_user, FLAGS_follow);
   }
 
   google::protobuf::ShutdownProtobufLibrary();

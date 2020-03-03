@@ -18,7 +18,7 @@ HOST_SYSTEM = $(shell uname | cut -f 1 -d_)
 SYSTEM ?= $(HOST_SYSTEM)
 CXX = g++
 CPPFLAGS += `pkg-config --cflags protobuf grpc`
-CXXFLAGS += -std=c++11
+CXXFLAGS += -std=c++17
 ifeq ($(SYSTEM),Darwin)
 LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
            -pthread\
@@ -36,9 +36,7 @@ LDFLAGS += -L/usr/local/lib `pkg-config --libs protobuf grpc++`\
            -ldl\
            -lglog\
            -lgflags\
-           -lprotoc\
-           -lprotobuf\
-           -Igoogle/protobuf
+           -lgtest
 endif
 PROTOC = protoc
 GRPC_CPP_PLUGIN = grpc_cpp_plugin
@@ -48,7 +46,7 @@ PROTOS_PATH = ../protos
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check main func_server kvstore_server
+all: system-check main func_server kvstore_server kvstore_db_test
 
 main: ../commandline/main.o func.pb.o func.grpc.pb.o kvstore.pb.o kvstore.grpc.pb.o warble.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
@@ -56,10 +54,11 @@ main: ../commandline/main.o func.pb.o func.grpc.pb.o kvstore.pb.o kvstore.grpc.p
 func_server: func.pb.o func.grpc.pb.o func_server.o warble_code.o warble.pb.o kvstore.grpc.pb.o kvstore.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-kvstore_server: kvstore.pb.o kvstore.grpc.pb.o kvstore_server.o
+kvstore_server: kvstore.pb.o kvstore.grpc.pb.o kvstore_server.o ../database/kvstore_database.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-
+kvstore_db_test: ../tests/kvstore_database_test.o ../database/kvstore_database.o
+	$(CXX) $^ $(LDFLAGS) -o $@
 
 # greeter_async_client: helloworld.pb.o helloworld.grpc.pb.o greeter_async_client.o
 # 	$(CXX) $^ $(LDFLAGS) -o $@
