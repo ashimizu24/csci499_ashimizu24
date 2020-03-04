@@ -45,9 +45,9 @@ void FuncClient::RegisterUser(const std::string& username) {
   grpc::Status status = stub_->event(&context, request, &reply);
   //return status;
   if(status.ok()) {
-    std::cout << "worked\n";
+    std::cout << "New User Created: " << username << std::endl;
   } else {
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
+    std::cout << "User was not able to be created\n"; 
   }
 }
 
@@ -77,6 +77,11 @@ void FuncClient::CreateWarbleReply(const std::string& username, const std::strin
   // TODO - unpack eventreply into warblereply
  
   grpc::Status status = stub_->event(&context, request, &reply);
+  if(status.ok()) {
+    std::cout << "New Warble Created " << id << std::endl;
+  } else {
+    std::cout << "Warble was not able to be created\n";
+  }
 }
 
 void FuncClient::Follow(const std::string& username, const std::string& usernametofollow) {
@@ -96,9 +101,13 @@ void FuncClient::Follow(const std::string& username, const std::string& username
   // Unpack response from GRPC 
   func::EventReply reply;
   warble::FollowReply followreply;
-  // TODO - Unpack eventreply into followreply 
  
   grpc::Status status = stub_->event(&context, request, &reply);
+  if(status.ok()) {
+    std::cout << username << " followed " << usernametofollow << std::endl;
+  } else {
+    std::cout << "Follow request was not able to be made\n";
+  }
 }
 
 void FuncClient::Read(const std::string& warbleid) {
@@ -121,22 +130,17 @@ void FuncClient::Read(const std::string& warbleid) {
   grpc::Status status = stub_->event(&context, request, &reply);
 
   if(status.ok()) {
-    std::cout << "worked \n";
     if(reply.payload().UnpackTo(&readreply)){
-      std::vector<warble::Warble> warbles;
+      std::vector<warble::Warble> warbles; 
       std::copy(readreply.warbles().begin(), readreply.warbles().end(), std::back_inserter(warbles));
-      std::cout << warbles.size();
+      std::reverse(warbles.begin(),warbles.end());
+
       for (warble::Warble warble : warbles) {
-        std::cout << "WARBLE " << warble.text() << std::endl; 
+        std::cout << warble.timestamp().seconds() << "   " << warble.username() << ": " << warble.text() << std::endl; 
       }
-      // std::cout << readreply.warbles_size() << std::endl;
-      // warble::Warble warble = readreply.warbles(0);
-      // std::cout << warble.text() << std::endl;
-      // std::cout << username << "'s followers are: " << profreply.followers(0) << std::endl;
-      // std::cout << username << " is following : " << profreply.following(0) << std::endl;
     }
   } else {
-    std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
+    std::cout <<  "Warble was not able to be read\n"; 
   }
 }
 
@@ -160,11 +164,22 @@ void FuncClient::Profile(const std::string& username) {
   grpc::Status status = stub_->event(&context, request, &reply);
 
   if(status.ok()) {
-    std::cout << "worked!!\n";
     if(reply.payload().UnpackTo(&profreply)){
-      std::cout << profreply.followers_size() << std::endl;
-      // std::cout << username << "'s followers are: " << profreply.followers(0) << std::endl;
-      // std::cout << username << " is following : " << profreply.following(0) << std::endl;
+      // Get and print followers
+      std::vector<std::string> followers;
+      std::copy(profreply.followers().begin(), profreply.followers().end(), std::back_inserter(followers)); 
+      std::cout << username << "'s followers: ";
+      for (std::string follower : followers) {
+        std::cout << follower << std::endl; 
+      }
+
+      // Get and print following
+      std::vector<std::string> following;
+      std::copy(profreply.following().begin(), profreply.following().end(), std::back_inserter(following)); 
+      std::cout << username << " is following: ";
+      for (std::string following : following) {
+        std::cout << following << std::endl; 
+      }
     }
   } else {
     std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
@@ -191,7 +206,7 @@ int main(int argc, char *argv[]) {
   if (!FLAGS_registeruser.empty()) {
     func_client.RegisterUser(FLAGS_registeruser);
   }
-  else if(!FLAGS_warble.empty()) {
+  else if(!FLAGS_warble.empty() && FLAGS_reply.empty()) {
     func_client.CreateWarble(FLAGS_user, FLAGS_warble);
   }
   else if(!FLAGS_warble.empty() && !FLAGS_reply.empty()) {

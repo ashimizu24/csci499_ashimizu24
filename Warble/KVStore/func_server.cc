@@ -24,32 +24,32 @@ grpc::Status FuncHandler::unhook(grpc::ServerContext* context, const func::Unhoo
 grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventRequest* request, func::EventReply* response)  {
 	// TODO - all this does is take in the call and find the corresponding function call from the table and then sending
 	// it to the warble code 
-  //std::cout << "getting event " << grpc::print(request->event_type) << std::endl;
+  grpc::Status status = grpc::Status::OK;
+
   switch(request->event_type()) {
 	case kRegisterUser:
-      wc_.CreateUser(request->payload());
+      status = wc_.CreateUser(request->payload());
       break;
 	case kWarble:
 	    wc_.CreateWarble(request->payload());
       break;
 	case kFollow:
-      wc_.Follow(request->payload());
+      status = wc_.Follow(request->payload());
       break;
   	case kRead:
-  	  *response->mutable_payload() = wc_.Read(request->payload());
+  	  status = wc_.Read(request->payload(), *response->mutable_payload());
       break;
   	case kProfile:
       wc_.Profile(request->payload(), *response->mutable_payload());
-      //*response->mutable_payload() = any;
       break;
   	case kReply:
   	  wc_.CreateWarbleReply(request->payload());
       break;
     default:
-      return grpc::Status::OK; // Change to Status::NOT_FOUND
+      return grpc::Status::CANCELLED;
   }
 	
-  return grpc::Status::OK;
+  return status;
 }
 
 void RunServer() {

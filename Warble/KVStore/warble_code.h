@@ -30,17 +30,17 @@ public:
       : stub_(kvstore::KeyValueStore::NewStub(channel)) {}
 
   void CreateWarble(google::protobuf::Any any); /// Unpacks any response into warble
-  bool CreateUser(google::protobuf::Any any); // Unpacks any response into new user
+  grpc::Status CreateUser(google::protobuf::Any any); // Unpacks any response into new user
   void CreateWarbleReply(google::protobuf::Any any); //Unpacks any response into reply warble (warble)
-  void Follow(google::protobuf::Any any); // Unpacks any response into who follow request
-  google::protobuf::Any Read(google::protobuf::Any any);// Unpacks any response into id of warble user wants to read
+  grpc::Status Follow(google::protobuf::Any any); // Unpacks any response into who follow request
+  grpc::Status Read(google::protobuf::Any any, google::protobuf::Any& anyreply);// Unpacks any response into id of warble user wants to read
   void Profile(google::protobuf::Any any, google::protobuf::Any& anyreply); // Unpacks ay response into username of profile to display
 
   void PutRequest(std::string key, std::string value);
   std::string GetRequest(std::string key);
   void RemoveRequest(std::string key);
 
-  bool UserExists(const std::string key);
+  bool ValExists(const std::string key);
  
   std::unique_ptr<kvstore::KeyValueStore::Stub> stub_;
 

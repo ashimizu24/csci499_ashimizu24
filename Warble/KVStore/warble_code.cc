@@ -1,19 +1,18 @@
 #include "warble_code.h"
 
-bool WarbleCode::CreateUser(google::protobuf::Any any) {
-  std::cout << "create " << std::endl;
+grpc::Status WarbleCode::CreateUser(google::protobuf::Any any) {
   // If user already doesn't exist
   // Create new user request object from unpacking payload 
   warble::RegisteruserRequest newuserrequest;
   if (any.UnpackTo(&newuserrequest)) {
     std::string key = USR_PRE + newuserrequest.username();
-    if(UserExists(key)){
-      return 0;
+    if(ValExists(key)){
+      return grpc::Status::CANCELLED;
     }
     
     PutRequest(key, "/"); //User data will be in FOLLOWERS/FOLLOWING form
   }
-  return 1;
+  return grpc::Status::OK;
 }
 
 void WarbleCode::CreateWarble(google::protobuf::Any any) {
@@ -39,8 +38,9 @@ void WarbleCode::CreateWarble(google::protobuf::Any any) {
     new_warble.set_text(warble_request.text()); 
     new_warble.set_parent_id(warble_request.parent_id()); 
 
-    warble_cnt++;
+    warble_cnt++; //incremement unique id for warble
 
+    // serialize warble into byte string to store in kvstore
     std::string value;
     new_warble.SerializeToString(&value);
 
@@ -52,18 +52,33 @@ void WarbleCode::CreateWarbleReply(google::protobuf::Any any) {
   CreateWarble(any);
 }
 
-void WarbleCode::Follow(google::protobuf::Any any) {
+grpc::Status WarbleCode::Follow(google::protobuf::Any any) {
   warble::FollowRequest followrequest;
   if (any.UnpackTo(&followrequest)) {
     std::string key1 = USR_PRE + followrequest.username();
     std::string key2 = USR_PRE + followrequest.to_follow();
     // Check if both users exists
-    if(!UserExists(key1) || !UserExists(key2)){
-      return;
+    if(!ValExists(key1) || !ValExists(key2)){
+      return grpc::Status::CANCELLED;
     }
-    // TODO Check if users are the same 
+    // Check if users are the same 
     if(key1.compare(key2) == 0){
-      return;
+      return grpc::Status::CANCELLED;
+    }
+
+    //Check if users are already following each other
+    std::string check = GetRequest(key2);
+    std::stringstream section(check);
+    std::string section_token;
+    while(std::getline(section, section_token, '/')) {
+      std::stringstream ss(section_token);
+      std::string token;
+      while(std::getline(ss, token, ',')) {
+        if(token.compare(followrequest.username()) == 0){ //user already followers
+          return grpc::Status::CANCELLED;
+        }
+      }
+      break;
     }
     // Add following to user
     std::string val1 = GetRequest(key1);
@@ -74,33 +89,33 @@ void WarbleCode::Follow(google::protobuf::Any any) {
 
     // Add follower to user
     std::string val2 = GetRequest(key2);
-    std::string delimiter = "/";
-    std::string followers = val2.substr(0, val2.find(delimiter));
-    std::string following = val2.substr(1, val2.find(delimiter));
-    followers+=",";
-    followers+=followrequest.username();
-    val2 = followers+"/"+following;
+    val2 = followrequest.username() + "," + val2; 
     RemoveRequest(key2);
     PutRequest(key2, val2);
   }
+  return grpc::Status::OK;
 }
 
-google::protobuf::Any WarbleCode::Read(google::protobuf::Any any) {
+grpc::Status WarbleCode::Read(google::protobuf::Any any, google::protobuf::Any& anyreply) {
   warble::ReadRequest readrequest;
   warble::ReadReply readreply;
   if (any.UnpackTo(&readrequest)) {
     std::string key = WARB_PRE + readrequest.warble_id();
-    
-    bool end = false;
+    bool exit = true;
     int count = 0;
-    while(end){
+    while(exit){
       std::string val = GetRequest(key);
+
+      if(val == "does not exist") { // Warble doesn't exist in kvstore
+        return grpc::Status::CANCELLED;
+      }
+
       warble::Warble warble; 
       warble.ParseFromString(val);
-      *readreply.mutable_warbles(count) = warble;
-
+      *readreply.add_warbles() = warble;
+      std::cout << warble.parent_id() << std::endl;
       if(warble.parent_id().compare("-1") == 0) {
-        end = true;
+        exit = false;
       }
       else{
         key = WARB_PRE + warble.parent_id();
@@ -108,9 +123,8 @@ google::protobuf::Any WarbleCode::Read(google::protobuf::Any any) {
       count++;
     }
   }
-  google::protobuf::Any payload;
-  payload.PackFrom(readreply);
-  return payload;
+  anyreply.PackFrom(readreply);
+  return grpc::Status::OK;
 }
 
 void WarbleCode::Profile(google::protobuf::Any any, google::protobuf::Any& anyreply) {
@@ -119,28 +133,31 @@ void WarbleCode::Profile(google::protobuf::Any any, google::protobuf::Any& anyre
   if (any.UnpackTo(&profilerequest)) {
     std::string key = USR_PRE + profilerequest.username();
     // Check if user exists
-    if(!UserExists(key)){
+    if(!ValExists(key)){
       return;
     }
     // Get user's followers and who they're following
+    bool followers = true;
     std::string val = GetRequest(key);
-    std::cout << profilerequest.username() << " : " << val << std::endl;
-    std::string delimiter = "/";
-    std::string followers = val.substr(0, val.find(delimiter));
-    std::stringstream ss(followers);
-    std::string token;
-    int index = 1;
-    while(std::getline(ss, token, ',')) {
-      profilereply.set_followers(index, token);
-      index++;
-    }
-
-    std::string following = val.substr(1, val.find(delimiter));
-    std::stringstream ss1(following);
-    index = 1;
-    while(std::getline(ss1, token, ',')) {
-      profilereply.set_following(index, token);
-      index++;
+  
+    std::stringstream section(val);
+    std::string section_token;
+     while(std::getline(section, section_token, '/')) {
+      if(followers){
+        std::stringstream ss(section_token);
+        std::string token;
+        while(std::getline(ss, token, ',')) {
+          *profilereply.add_followers() = token;
+        }
+        followers = false;
+      }
+      else{
+        std::stringstream ss(section_token);
+        std::string token;
+        while(std::getline(ss, token, ',')) {
+          *profilereply.add_following() = token;
+        }
+      }
     }
   }
   anyreply.PackFrom(profilereply);
@@ -200,7 +217,7 @@ void WarbleCode::RemoveRequest(std::string key) {
   // }
 }
 
-bool WarbleCode::UserExists(const std::string key) {
+bool WarbleCode::ValExists(const std::string key) {
   std::string val = GetRequest(key);
     if(val == "does not exist"){ // User doesn't exists
       return false;
