@@ -21,7 +21,8 @@ DEFINE_string(warble, "", "Creates a new warble with the given text. Enter as -w
 DEFINE_string(reply, "", "Indicates that the new warble is a reply to the given id. Enter as -reply <reply warble id>");
 DEFINE_string(follow, "", "Starts following the given username. Enter as -follow <username>");
 DEFINE_string(read, "", "Reads the warble thread starting at the given id. Enter as -read <warble id>");
-DEFINE_string(profile, "", "Gets the user’s profile of following and followers. Enter as -profile");
+DEFINE_string(profile, "profile", "Gets the user’s profile of following and followers. Enter as -profile");
+DEFINE_string(hook, "hook", "Initializes all functions. Enter as -hook");
 
 void FuncClient::RegisterUser(const std::string& username) {
   // Objects being passing into stub
@@ -187,6 +188,24 @@ void FuncClient::Profile(const std::string& username) {
 
 }
 
+void FuncClient::HookEvents() {
+  typemap_.insert( {"Register User", kRegisterUser} );
+  typemap_.insert( {"Create Warble", kWarble} );
+  typemap_.insert( {"Follow User", kFollow} );
+  typemap_.insert( {"Read Warble", kRead} );
+  typemap_.insert( {"User Profile", kProfile} );
+  typemap_.insert( {"Create Warble Reply", kReply} );
+
+  for(auto it = typemap_.begin(); it != typemap_.end(); ++it){
+    grpc::ClientContext context;
+    func::HookRequest request;
+    func::HookReply reply;
+    request.set_event_type(it->second);
+    request.set_event_function(it->first);
+    grpc::Status status = stub_->hook(&context, request, &reply);
+  }
+}
+
 int main(int argc, char *argv[]) {
   FuncClient func_client(grpc::CreateChannel( "localhost:50000", grpc::InsecureChannelCredentials()));
   
@@ -195,6 +214,12 @@ int main(int argc, char *argv[]) {
   google::InitGoogleLogging(argv[0]);
 
   GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+   if (!FLAGS_hook.empty()) {
+    std::cout<<"hook\n";
+    func_client.HookEvents();
+    return 1;
+  }
 
   /// Error check - user was not defined for flags that require it (all except registeruser)
   if (FLAGS_user.empty() && FLAGS_registeruser.empty()) {

@@ -26,5 +26,9 @@ public:
   // Displays who a user is following and their followers
   void Profile(const std::string& username);
 
+  void HookEvents();
+
+private:
   std::unique_ptr<func::KeyValueStore::Stub> stub_;
+  std::unordered_map<std::string, WarbleTypes> typemap_;
 };

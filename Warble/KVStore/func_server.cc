@@ -5,56 +5,60 @@
 #include <google/protobuf/any.h>
 // Hook processes messages and calls certain event types
 // hook done by operator (who's running the warble service) like warble hook is 17
-grpc::Status FuncHandler::hook(grpc::ServerContext* context, const func::HookRequest request, func::HookReply reply)  
+grpc::Status FuncHandler::hook(grpc::ServerContext* context, const func::HookRequest* request, func::HookReply* reply)  
 {
-	// TODO
-	// get what event function it is by request.event_function();
-	// where does event function get set?
-
-  return grpc::Status::OK;
+  return AddFunc(request);
 }
 
-grpc::Status FuncHandler::unhook(grpc::ServerContext* context, const func::UnhookRequest request, func::UnhookReply reply)  
+grpc::Status FuncHandler::unhook(grpc::ServerContext* context, const func::UnhookRequest* request, func::UnhookReply* reply)  
 {
 	// TODO
   return grpc::Status::OK;
 }
 
-// QUESTION - does this automatically get triggered when main sends the stub? or do we have to call it somewhere
+// Recieves incoming event requests from the commandline
 grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventRequest* request, func::EventReply* response)  {
-	// TODO - all this does is take in the call and find the corresponding function call from the table and then sending
-	// it to the warble code 
-  grpc::Status status = grpc::Status::OK;
-
-  switch(request->event_type()) {
-	case kRegisterUser:
-      status = wc_.CreateUser(request->payload());
-      break;
-	case kWarble:
-	    wc_.CreateWarble(request->payload());
-      break;
-	case kFollow:
-      status = wc_.Follow(request->payload());
-      break;
-  	case kRead:
-  	  status = wc_.Read(request->payload(), *response->mutable_payload());
-      break;
-  	case kProfile:
-      wc_.Profile(request->payload(), *response->mutable_payload());
-      break;
-  	case kReply:
-  	  wc_.CreateWarbleReply(request->payload());
-      break;
-    default:
-      return grpc::Status::CANCELLED;
+	
+  int eventtype = request->event_type();
+  auto it2 = typetofuncmap_.find(eventtype);
+  if(it2 != typetofuncmap_.end()){
+    int i = it2->first;
+    std::function<grpc::Status(const WarbleCode, const google::protobuf::Any&, google::protobuf::Any&)> func = it2->second;
+    ///wc_.func();
+    //auto x = std::bind(&func, request->payload(), *response->mutable_payload());
+    //std::cout << "bind " << x << std::endl;
+   // return &func(wc_request->payload(), *response->mutable_payload());
   }
 	
-  return status;
+  return grpc::Status::CANCELLED;
+}
+
+grpc::Status FuncHandler::AddFunc(const func::HookRequest* request){
+  auto it2 = nametofuncmap_.find(request->event_function());
+  if(it2 != nametofuncmap_.end()){
+    typetofuncmap_.insert( {request->event_type(), it2->second} );
+
+    return grpc::Status::OK;
+  }
+  return grpc::Status::CANCELLED;
+}
+
+void FuncHandler::PopulateMap(){
+  nametofuncmap_.insert( {"Register User", &WarbleCode::CreateUser} );
+  nametofuncmap_.insert( {"Create Warble", &WarbleCode::CreateWarble} );
+  nametofuncmap_.insert( {"Follow User", &WarbleCode::Follow} );
+  nametofuncmap_.insert( {"Read Warble", &WarbleCode::Read} );
+  nametofuncmap_.insert( {"User Profile", &WarbleCode::Profile} );
+  nametofuncmap_.insert( {"Create Warble Reply", &WarbleCode::CreateWarbleReply} );
 }
 
 void RunServer() {
   std::string server_address("0.0.0.0:50000");
-  FuncHandler service(grpc::CreateChannel( "localhost:50002", grpc::InsecureChannelCredentials()));
+  std::unique_ptr<KVBase> kvstore = std::make_unique<KVStoreRemote>(grpc::CreateChannel( "localhost:50002", grpc::InsecureChannelCredentials()));
+ // std::unique_ptr<KVBase> kvstore(new KVStoreRemote(grpc::CreateChannel( "localhost:50002", grpc::InsecureChannelCredentials())));
+  //KVStoreRemote kvstore(grpc::CreateChannel( "localhost:50002", grpc::InsecureChannelCredentials()))
+  FuncHandler service(std::move(kvstore));
+  service.PopulateMap();
 
   grpc::ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

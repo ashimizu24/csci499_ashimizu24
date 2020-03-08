@@ -1,21 +1,21 @@
 #include "warble_code.h"
 
-grpc::Status WarbleCode::CreateUser(google::protobuf::Any any) {
+grpc::Status WarbleCode::CreateUser(const google::protobuf::Any& request, google::protobuf::Any& reply) {
   // If user already doesn't exist
   // Create new user request object from unpacking payload 
   warble::RegisteruserRequest newuserrequest;
-  if (any.UnpackTo(&newuserrequest)) {
+  if (request.UnpackTo(&newuserrequest)) {
     std::string key = USR_PRE + newuserrequest.username();
-    if(ValExists(key)){
+    if(kvstore_->ValExists(key)){
       return grpc::Status::CANCELLED;
     }
     
-    PutRequest(key, "/"); //User data will be in FOLLOWERS/FOLLOWING form
+    kvstore_->PutRequest(key, "/"); //User data will be in FOLLOWERS/FOLLOWING form
   }
   return grpc::Status::OK;
 }
 
-void WarbleCode::CreateWarble(google::protobuf::Any any) {
+grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any& request, google::protobuf::Any& reply) {
   warble::Timestamp *timestamp = new warble::Timestamp();
   int64_t seconds = google::protobuf::util::TimeUtil::TimestampToSeconds(google::protobuf::util::TimeUtil::GetCurrentTime());
   int64_t useconds = google::protobuf::util::TimeUtil::TimestampToMicroseconds(google::protobuf::util::TimeUtil::GetCurrentTime());
@@ -28,7 +28,7 @@ void WarbleCode::CreateWarble(google::protobuf::Any any) {
   // Create new warble from unpacking warble request and adding parameters
   warble::Warble new_warble; 
   warble::WarbleRequest warble_request;
-  if (any.UnpackTo(&warble_request)) {
+  if (request.UnpackTo(&warble_request)) {
     // Add elements that were not in the WarbleRequest
     std::string key = WARB_PRE + std::to_string(warble_cnt);
 
@@ -44,21 +44,22 @@ void WarbleCode::CreateWarble(google::protobuf::Any any) {
     std::string value;
     new_warble.SerializeToString(&value);
 
-    PutRequest(key, value);
+    kvstore_->PutRequest(key, value);
   }
+  return grpc::Status::OK;
 }
 
-void WarbleCode::CreateWarbleReply(google::protobuf::Any any) {
-  CreateWarble(any);
+grpc::Status WarbleCode::CreateWarbleReply(const google::protobuf::Any& request, google::protobuf::Any& reply) {
+  return CreateWarble(request, reply);
 }
 
-grpc::Status WarbleCode::Follow(google::protobuf::Any any) {
+grpc::Status WarbleCode::Follow(const google::protobuf::Any& request, google::protobuf::Any& reply) {
   warble::FollowRequest followrequest;
-  if (any.UnpackTo(&followrequest)) {
+  if (request.UnpackTo(&followrequest)) {
     std::string key1 = USR_PRE + followrequest.username();
     std::string key2 = USR_PRE + followrequest.to_follow();
     // Check if both users exists
-    if(!ValExists(key1) || !ValExists(key2)){
+    if(!kvstore_->ValExists(key1) || !kvstore_->ValExists(key2)){
       return grpc::Status::CANCELLED;
     }
     // Check if users are the same 
@@ -67,7 +68,7 @@ grpc::Status WarbleCode::Follow(google::protobuf::Any any) {
     }
 
     //Check if users are already following each other
-    std::string check = GetRequest(key2);
+    std::string check = kvstore_->GetRequest(key2);
     std::stringstream section(check);
     std::string section_token;
     while(std::getline(section, section_token, '/')) {
@@ -81,30 +82,30 @@ grpc::Status WarbleCode::Follow(google::protobuf::Any any) {
       break;
     }
     // Add following to user
-    std::string val1 = GetRequest(key1);
+    std::string val1 = kvstore_->GetRequest(key1);
     val1+=followrequest.to_follow();
     val1+=",";
-    RemoveRequest(key1);
-    PutRequest(key1, val1);
+    kvstore_->RemoveRequest(key1);
+    kvstore_->PutRequest(key1, val1);
 
     // Add follower to user
-    std::string val2 = GetRequest(key2);
+    std::string val2 = kvstore_->GetRequest(key2);
     val2 = followrequest.username() + "," + val2; 
-    RemoveRequest(key2);
-    PutRequest(key2, val2);
+    kvstore_->RemoveRequest(key2);
+    kvstore_->PutRequest(key2, val2);
   }
   return grpc::Status::OK;
 }
 
-grpc::Status WarbleCode::Read(google::protobuf::Any any, google::protobuf::Any& anyreply) {
+grpc::Status WarbleCode::Read(const google::protobuf::Any& request, google::protobuf::Any& reply) {
   warble::ReadRequest readrequest;
   warble::ReadReply readreply;
-  if (any.UnpackTo(&readrequest)) {
+  if (request.UnpackTo(&readrequest)) {
     std::string key = WARB_PRE + readrequest.warble_id();
     bool exit = true;
     int count = 0;
     while(exit){
-      std::string val = GetRequest(key);
+      std::string val = kvstore_->GetRequest(key);
 
       if(val == "does not exist") { // Warble doesn't exist in kvstore
         return grpc::Status::CANCELLED;
@@ -123,22 +124,22 @@ grpc::Status WarbleCode::Read(google::protobuf::Any any, google::protobuf::Any& 
       count++;
     }
   }
-  anyreply.PackFrom(readreply);
+  reply.PackFrom(readreply);
   return grpc::Status::OK;
 }
 
-void WarbleCode::Profile(google::protobuf::Any any, google::protobuf::Any& anyreply) {
+grpc::Status WarbleCode::Profile(const google::protobuf::Any& request, google::protobuf::Any& reply) {
   warble::ProfileRequest profilerequest;
   warble::ProfileReply profilereply;
-  if (any.UnpackTo(&profilerequest)) {
+  if (request.UnpackTo(&profilerequest)) {
     std::string key = USR_PRE + profilerequest.username();
     // Check if user exists
-    if(!ValExists(key)){
-      return;
+    if(!kvstore_->ValExists(key)){
+      return grpc::Status::CANCELLED;
     }
     // Get user's followers and who they're following
     bool followers = true;
-    std::string val = GetRequest(key);
+    std::string val = kvstore_->GetRequest(key);
   
     std::stringstream section(val);
     std::string section_token;
@@ -160,67 +161,8 @@ void WarbleCode::Profile(google::protobuf::Any any, google::protobuf::Any& anyre
       }
     }
   }
-  anyreply.PackFrom(profilereply);
+  reply.PackFrom(profilereply);
+  return grpc::Status::OK;
 }
 
-std::string WarbleCode::GetRequest(std::string key) {
-   grpc::ClientContext context;
 
-  std::shared_ptr<grpc::ClientReaderWriter<kvstore::GetRequest, kvstore::GetReply>> stream(stub_->get(&context));
-
-  // add request to stream
-  std::thread write_to_stream([&key, &stream]() {
-    kvstore::GetRequest request;
-    request.set_key(key);
-    stream->Write(request);
-    stream->WritesDone();
-  });
-
-  // get value from stream
-  kvstore::GetReply reply;
-  stream->Read(&reply);
-  std::string val = reply.value();
-  write_to_stream.join();
-  grpc::Status status = stream->Finish();
-
-  return val;
-}
-
-void WarbleCode::PutRequest(std::string key, std::string value) {
-  grpc::ClientContext context;
-  kvstore::PutRequest request;
-  request.set_key(key);
-  request.set_value(value);
-  kvstore::PutReply reply;
-
-  grpc::Status status = stub_->put(&context, request, &reply);
-  //return status;
-  // if(status.ok()) {
-  //   std::cout << "worked\n";
-  // } else {
-  //   std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
-  // }
-}
-
-void WarbleCode::RemoveRequest(std::string key) {
-  grpc::ClientContext context;
-  kvstore::RemoveRequest request;
-  request.set_key(key);
-  kvstore::RemoveReply reply;
-
-  grpc::Status status = stub_->remove(&context, request, &reply);
-  //return status;
-  // if(status.ok()) {
-  //   std::cout << "worked\n";
-  // } else {
-  //   std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
-  // }
-}
-
-bool WarbleCode::ValExists(const std::string key) {
-  std::string val = GetRequest(key);
-    if(val == "does not exist"){ // User doesn't exists
-      return false;
-  }
-  return true;
-}
