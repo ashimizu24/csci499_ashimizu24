@@ -22,12 +22,8 @@ grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventR
   int eventtype = request->event_type();
   auto it2 = typetofuncmap_.find(eventtype);
   if(it2 != typetofuncmap_.end()){
-    int i = it2->first;
-    std::function<grpc::Status(const WarbleCode, const google::protobuf::Any&, google::protobuf::Any&)> func = it2->second;
-    ///wc_.func();
-    //auto x = std::bind(&func, request->payload(), *response->mutable_payload());
-    //std::cout << "bind " << x << std::endl;
-   // return &func(wc_request->payload(), *response->mutable_payload());
+    auto &func = it2->second;
+    return func(this->wc_, request->payload(), *response->mutable_payload());
   }
 	
   return grpc::Status::CANCELLED;
@@ -46,9 +42,9 @@ grpc::Status FuncHandler::AddFunc(const func::HookRequest* request){
 void FuncHandler::PopulateMap(){
   nametofuncmap_.insert( {"Register User", &WarbleCode::CreateUser} );
   nametofuncmap_.insert( {"Create Warble", &WarbleCode::CreateWarble} );
-  nametofuncmap_.insert( {"Follow User", &WarbleCode::Follow} );
+  nametofuncmap_.insert( {"Follow", &WarbleCode::Follow} );
   nametofuncmap_.insert( {"Read Warble", &WarbleCode::Read} );
-  nametofuncmap_.insert( {"User Profile", &WarbleCode::Profile} );
+  nametofuncmap_.insert( {"Profile", &WarbleCode::Profile} );
   nametofuncmap_.insert( {"Create Warble Reply", &WarbleCode::CreateWarbleReply} );
 }
 

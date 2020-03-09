@@ -37,7 +37,7 @@ public:
   grpc::Status AddFunc(const func::HookRequest* request);
 private:
   WarbleCode wc_;
-  std::unordered_map<std::string, std::function<grpc::Status(const WarbleCode, const google::protobuf::Any&, google::protobuf::Any&)>> nametofuncmap_;
+  std::unordered_map<std::string, std::function<grpc::Status(WarbleCode&, const google::protobuf::Any&, google::protobuf::Any&)>> nametofuncmap_;
   //std::unordered_map<std::string, int> nametotypemap_;
-  std::unordered_map<int, std::function<grpc::Status(const WarbleCode, const google::protobuf::Any&, google::protobuf::Any&)>> typetofuncmap_;
+  std::unordered_map<int, std::function<grpc::Status(WarbleCode&, const google::protobuf::Any&, google::protobuf::Any&)>> typetofuncmap_;
 };

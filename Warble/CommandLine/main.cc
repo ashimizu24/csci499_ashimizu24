@@ -21,8 +21,8 @@ DEFINE_string(warble, "", "Creates a new warble with the given text. Enter as -w
 DEFINE_string(reply, "", "Indicates that the new warble is a reply to the given id. Enter as -reply <reply warble id>");
 DEFINE_string(follow, "", "Starts following the given username. Enter as -follow <username>");
 DEFINE_string(read, "", "Reads the warble thread starting at the given id. Enter as -read <warble id>");
-DEFINE_string(profile, "profile", "Gets the user’s profile of following and followers. Enter as -profile");
-DEFINE_string(hook, "hook", "Initializes all functions. Enter as -hook");
+DEFINE_string(profile, "", "Gets the user’s profile of following and followers. Enter as -profile");
+DEFINE_string(hook, "", "Initializes all functions. Enter as -hook");
 
 void FuncClient::RegisterUser(const std::string& username) {
   // Objects being passing into stub
@@ -42,7 +42,6 @@ void FuncClient::RegisterUser(const std::string& username) {
   payload.PackFrom(newuserrequest);
   *request.mutable_payload() = payload;
   
-  // TODO - unpack eventreply into registeruserreply
   grpc::Status status = stub_->event(&context, request, &reply);
   //return status;
   if(status.ok()) {
@@ -75,7 +74,6 @@ void FuncClient::CreateWarbleReply(const std::string& username, const std::strin
   // Unpack response from GRPC 
   func::EventReply reply;
   warble::WarbleReply warblereply;
-  // TODO - unpack eventreply into warblereply
  
   grpc::Status status = stub_->event(&context, request, &reply);
   if(status.ok()) {
@@ -161,7 +159,6 @@ void FuncClient::Profile(const std::string& username) {
   // Unpack response from GRPC 
   func::EventReply reply;
   warble::ProfileReply profreply;
-  //TODO - unpack eventreply into profreply
   grpc::Status status = stub_->event(&context, request, &reply);
 
   if(status.ok()) {
@@ -173,7 +170,7 @@ void FuncClient::Profile(const std::string& username) {
       for (std::string follower : followers) {
         std::cout << follower << std::endl; 
       }
-
+      std::cout << "\n"; 
       // Get and print following
       std::vector<std::string> following;
       std::copy(profreply.following().begin(), profreply.following().end(), std::back_inserter(following)); 
@@ -181,6 +178,7 @@ void FuncClient::Profile(const std::string& username) {
       for (std::string following : following) {
         std::cout << following << std::endl; 
       }
+      std::cout << "\n\n"; 
     }
   } else {
     std::cout << status.error_code() << ": " << status.error_message() << std::endl; 
@@ -191,9 +189,9 @@ void FuncClient::Profile(const std::string& username) {
 void FuncClient::HookEvents() {
   typemap_.insert( {"Register User", kRegisterUser} );
   typemap_.insert( {"Create Warble", kWarble} );
-  typemap_.insert( {"Follow User", kFollow} );
+  typemap_.insert( {"Follow", kFollow} );
   typemap_.insert( {"Read Warble", kRead} );
-  typemap_.insert( {"User Profile", kProfile} );
+  typemap_.insert( {"Profile", kProfile} );
   typemap_.insert( {"Create Warble Reply", kReply} );
 
   for(auto it = typemap_.begin(); it != typemap_.end(); ++it){
@@ -216,7 +214,7 @@ int main(int argc, char *argv[]) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
    if (!FLAGS_hook.empty()) {
-    std::cout<<"hook\n";
+    std::cout<< FLAGS_hook << std::endl;
     func_client.HookEvents();
     return 1;
   }
