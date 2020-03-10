@@ -4,55 +4,61 @@
 #include <glog/logging.h>
 #include <google/protobuf/any.h>
 // Hook processes messages and calls certain event types
-// hook done by operator (who's running the warble service) like warble hook is 17
-grpc::Status FuncHandler::hook(grpc::ServerContext* context, const func::HookRequest* request, func::HookReply* reply)  
-{
+// hook done by operator (who's running the warble service) like warble hook is
+// 17
+grpc::Status FuncHandler::hook(grpc::ServerContext *context,
+                               const func::HookRequest *request,
+                               func::HookReply *reply) {
   return AddFunc(request);
 }
 
-grpc::Status FuncHandler::unhook(grpc::ServerContext* context, const func::UnhookRequest* request, func::UnhookReply* reply)  
-{
-	// TODO
+grpc::Status FuncHandler::unhook(grpc::ServerContext *context,
+                                 const func::UnhookRequest *request,
+                                 func::UnhookReply *reply) {
+  typetofuncmap_.erase(request->event_type());
   return grpc::Status::OK;
 }
 
 // Recieves incoming event requests from the commandline
-grpc::Status FuncHandler::event(grpc::ServerContext* context, const func::EventRequest* request, func::EventReply* response)  {
-	
+grpc::Status FuncHandler::event(grpc::ServerContext *context,
+                                const func::EventRequest *request,
+                                func::EventReply *response) {
+
   int eventtype = request->event_type();
   auto it2 = typetofuncmap_.find(eventtype);
-  if(it2 != typetofuncmap_.end()){
+  if (it2 != typetofuncmap_.end()) {
     auto &func = it2->second;
     return func(this->wc_, request->payload(), *response->mutable_payload());
   }
-	
+
   return grpc::Status::CANCELLED;
 }
 
-grpc::Status FuncHandler::AddFunc(const func::HookRequest* request){
+grpc::Status FuncHandler::AddFunc(const func::HookRequest *request) {
   auto it2 = nametofuncmap_.find(request->event_function());
-  if(it2 != nametofuncmap_.end()){
-    typetofuncmap_.insert( {request->event_type(), it2->second} );
+  if (it2 != nametofuncmap_.end()) {
+    typetofuncmap_.insert({request->event_type(), it2->second});
 
     return grpc::Status::OK;
   }
   return grpc::Status::CANCELLED;
 }
 
-void FuncHandler::PopulateMap(){
-  nametofuncmap_.insert( {"Register User", &WarbleCode::CreateUser} );
-  nametofuncmap_.insert( {"Create Warble", &WarbleCode::CreateWarble} );
-  nametofuncmap_.insert( {"Follow", &WarbleCode::Follow} );
-  nametofuncmap_.insert( {"Read Warble", &WarbleCode::Read} );
-  nametofuncmap_.insert( {"Profile", &WarbleCode::Profile} );
-  nametofuncmap_.insert( {"Create Warble Reply", &WarbleCode::CreateWarbleReply} );
+void FuncHandler::PopulateMap() {
+  nametofuncmap_.insert({"Register User", &WarbleCode::CreateUser});
+  nametofuncmap_.insert({"Create Warble", &WarbleCode::CreateWarble});
+  nametofuncmap_.insert({"Follow", &WarbleCode::Follow});
+  nametofuncmap_.insert({"Read Warble", &WarbleCode::Read});
+  nametofuncmap_.insert({"Profile", &WarbleCode::Profile});
+  nametofuncmap_.insert(
+      {"Create Warble Reply", &WarbleCode::CreateWarbleReply});
 }
 
 void RunServer() {
   std::string server_address("0.0.0.0:50000");
-  std::unique_ptr<KVBase> kvstore = std::make_unique<KVStoreRemote>(grpc::CreateChannel( "localhost:50002", grpc::InsecureChannelCredentials()));
- // std::unique_ptr<KVBase> kvstore(new KVStoreRemote(grpc::CreateChannel( "localhost:50002", grpc::InsecureChannelCredentials())));
-  //KVStoreRemote kvstore(grpc::CreateChannel( "localhost:50002", grpc::InsecureChannelCredentials()))
+  std::unique_ptr<KVBase> kvstore =
+      std::make_unique<KVStoreRemote>(grpc::CreateChannel(
+          "localhost:50002", grpc::InsecureChannelCredentials()));
   FuncHandler service(std::move(kvstore));
   service.PopulateMap();
 
@@ -64,19 +70,7 @@ void RunServer() {
   server->Wait();
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   RunServer();
-  // TODO: populate enum values hook
   return 0;
 }
-
-//only sends function call 
-//warble code separate class needs to KVClient
-// for unit test create an abstract kvdb class and kvdb inherit
-// warble code parses payload so for warble request - creates a new warble, copies data, and then gets new data
-// has the increment counters and such
-
-// has the int of type of function and message (payload)
-	// .h file with the ints ofr the user
-	// all this does is take 
