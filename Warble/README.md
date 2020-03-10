@@ -5,6 +5,7 @@ CSCI499 - Warble
 
 Install VM
 ------
+
 [Download Vagrant](https://www.vagrantup.com/downloads.html)
 </br>
 ```
