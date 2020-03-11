@@ -48,10 +48,10 @@ private:
   std::unordered_map<
       std::string,
       std::function<grpc::Status(WarbleCode &, const google::protobuf::Any &,
-                                 google::protobuf::Any &)>>
+                                 google::protobuf::Any *)>>
       nametofuncmap_;
   std::unordered_map<int, std::function<grpc::Status(
                               WarbleCode &, const google::protobuf::Any &,
-                              google::protobuf::Any &)>>
+                              google::protobuf::Any *)>>
       typetofuncmap_;
 };

@@ -46,7 +46,7 @@ PROTOS_PATH = ../protos
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check main func_server kvstore_server kvstore_db_test
+all: system-check main func_server kvstore_server kvstore_db_test warble_test
 
 main: ../commandline/main.o func.pb.o func.grpc.pb.o kvstore.pb.o kvstore.grpc.pb.o warble.pb.o
 	$(CXX) $^ $(LDFLAGS) -o $@
@@ -60,6 +60,8 @@ kvstore_server: kvstore.pb.o kvstore.grpc.pb.o kvstore_server.o ../database/kvst
 kvstore_db_test: ../tests/kvstore_database_test.o ../database/kvstore_database.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
+warble_test: ../tests/warble_service_test.o ../kvstore/warble_code.o ../kvstore/warble.pb.o ../database/kvstore_database.o
+	$(CXX) $^ $(LDFLAGS) -o $@
 # greeter_async_client: helloworld.pb.o helloworld.grpc.pb.o greeter_async_client.o
 # 	$(CXX) $^ $(LDFLAGS) -o $@
 

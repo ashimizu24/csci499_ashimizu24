@@ -1,24 +1,24 @@
 #include "warble_code.h"
 
 grpc::Status WarbleCode::CreateUser(const google::protobuf::Any &request,
-                                    google::protobuf::Any &reply) {
+                                    google::protobuf::Any *reply) {
   // If user already doesn't exist
   // Create new user request object from unpacking payload
   warble::RegisteruserRequest newuserrequest;
   if (request.UnpackTo(&newuserrequest)) {
     std::string key = USR_PRE + newuserrequest.username();
     if (ValExists(key)) {
-      return grpc::Status::CANCELLED;
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "User already exist");
     }
 
-    kvstore_->PutRequest(key,
-                         "/"); // User data will be in FOLLOWERS/FOLLOWING form
+    // User data will be in FOLLOWERS/FOLLOWING form
+    kvstore_->PutRequest(key, "/"); 
   }
   return grpc::Status::OK;
 }
 
 grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
-                                      google::protobuf::Any &reply) {
+                                      google::protobuf::Any *reply) {
   warble::Timestamp *timestamp = new warble::Timestamp();
   int64_t seconds = google::protobuf::util::TimeUtil::TimestampToSeconds(
       google::protobuf::util::TimeUtil::GetCurrentTime());
@@ -34,7 +34,34 @@ grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
   warble::WarbleRequest warble_request;
   if (request.UnpackTo(&warble_request)) {
     // Add elements that were not in the WarbleRequest
-    std::string key = WARB_PRE + std::to_string(warble_cnt);
+    std::string newwarble_key = WARB_PRE + std::to_string(warble_cnt);
+
+    // Check parent id
+    if(std::stoi(warble_request.parent_id()) >= warble_cnt || std::stoi(warble_request.parent_id()) < -1){
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Parent id is invalid");
+    }
+
+    // Check is user exists
+    if(!ValExists(USR_PRE + warble_request.username())){
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "User doesn't exist");
+    }
+
+    // Add a child if the parent isn't the root
+    if(std::stoi(warble_request.parent_id()) != -1) {
+      std::string newchild_key = CHILDREN_PRE + warble_request.parent_id();
+      std::string newchild_value = kvstore_->GetRequest(newchild_key);
+
+       // Warble doesn't have any children yet
+      if(newchild_value.compare("does not exist") == 0){ 
+        kvstore_->PutRequest(newchild_key, warble_cnt_str);
+      }
+      else{
+        newchild_value += ",";
+        newchild_value += warble_cnt_str;
+        kvstore_->RemoveRequest(newchild_key);
+        kvstore_->PutRequest(newchild_key, newchild_value);
+      }
+    }
 
     new_warble.set_id(warble_cnt_str);
     new_warble.set_allocated_timestamp(timestamp);
@@ -45,21 +72,26 @@ grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
     warble_cnt++; // incremement unique id for warble
 
     // serialize warble into byte string to store in kvstore
-    std::string value;
-    new_warble.SerializeToString(&value);
+    std::string newwarble_value;
+    new_warble.SerializeToString(&newwarble_value);
 
-    kvstore_->PutRequest(key, value);
+    // Add warble to database
+    kvstore_->PutRequest(newwarble_key, newwarble_value);
+
+    warble::WarbleReply warblereply;
+    *warblereply.mutable_warble() = new_warble;
+    reply->PackFrom(warblereply);
   }
   return grpc::Status::OK;
 }
 
 grpc::Status WarbleCode::CreateWarbleReply(const google::protobuf::Any &request,
-                                           google::protobuf::Any &reply) {
+                                           google::protobuf::Any *reply) {
   return CreateWarble(request, reply);
 }
 
 grpc::Status WarbleCode::Follow(const google::protobuf::Any &request,
-                                google::protobuf::Any &reply) {
+                                google::protobuf::Any *reply) {
   warble::FollowRequest followrequest;
   if (request.UnpackTo(&followrequest)) {
     std::string usrname_key = USR_PRE + followrequest.username();
@@ -94,7 +126,6 @@ grpc::Status WarbleCode::Follow(const google::protobuf::Any &request,
     usrname_val += ",";
     kvstore_->RemoveRequest(usrname_key);
     kvstore_->PutRequest(usrname_key, usrname_val);
-
     // Add follower to user
     std::string tofollow_val = kvstore_->GetRequest(tofollow_key);
     tofollow_val = followrequest.username() + "," + tofollow_val;
@@ -105,45 +136,59 @@ grpc::Status WarbleCode::Follow(const google::protobuf::Any &request,
 }
 
 grpc::Status WarbleCode::Read(const google::protobuf::Any &request,
-                              google::protobuf::Any &reply) {
+                              google::protobuf::Any *reply) {
   warble::ReadRequest readrequest;
   warble::ReadReply readreply;
   if (request.UnpackTo(&readrequest)) {
     std::string key = WARB_PRE + readrequest.warble_id();
-    bool proceed = true;
-    int count = 0;
-    while (proceed) {
-      std::string val = kvstore_->GetRequest(key);
 
-      if (val == "does not exist") { // Warble doesn't exist in kvstore
-        return grpc::Status::CANCELLED;
-      }
+    // Check if warble id exists in kvstore
+    if (kvstore_->GetRequest(key).compare("does not exist") == 0) { 
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Warble doesn't exist");
+    }
+    std::string children_key = CHILDREN_PRE + readrequest.warble_id();
+    std::string children = kvstore_->GetRequest(children_key);
+    
+    std::vector<std::string> all_warbles;
+    all_warbles.push_back(readrequest.warble_id());
 
+    int num_children = 1;
+    for(int i=0; i<num_children; i++){
+      // Insert warble
+      std::string child_key = WARB_PRE + all_warbles[i];
+      std::string child_val = kvstore_->GetRequest(child_key);
       warble::Warble warble;
-      warble.ParseFromString(val);
+      warble.ParseFromString(child_val);
       *readreply.add_warbles() = warble;
-      std::cout << warble.parent_id() << std::endl;
-      if (warble.parent_id().compare("-1") == 0) {
-        proceed = false;
-      } else {
-        key = WARB_PRE + warble.parent_id();
+
+      // check if warble has a child
+      std::string grandchild_key = CHILDREN_PRE + all_warbles[i];
+      std::string grandchild_val = kvstore_->GetRequest(grandchild_key);
+      if(grandchild_val.compare("does not exist") != 0){
+        std::stringstream gchild_ss(grandchild_val);
+        std::string grandchild_token;
+        while (std::getline(gchild_ss, grandchild_token, ',')) {
+          std::cout << "grandchild found " << children << std::endl;
+          all_warbles.push_back(grandchild_token);
+          num_children++; 
+        }
       }
-      count++;
     }
   }
-  reply.PackFrom(readreply);
+  reply->PackFrom(readreply);
   return grpc::Status::OK;
 }
 
 grpc::Status WarbleCode::Profile(const google::protobuf::Any &request,
-                                 google::protobuf::Any &reply) {
+                                 google::protobuf::Any *reply) {
   warble::ProfileRequest profilerequest;
   warble::ProfileReply profilereply;
   if (request.UnpackTo(&profilerequest)) {
     std::string key = USR_PRE + profilerequest.username();
+
     // Check if user exists
     if (!ValExists(key)) {
-      return grpc::Status::CANCELLED;
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "User doesn't exist");
     }
     // Get user's followers and who they're following
     bool followers = true;
@@ -168,7 +213,7 @@ grpc::Status WarbleCode::Profile(const google::protobuf::Any &request,
       }
     }
   }
-  reply.PackFrom(profilereply);
+  reply->PackFrom(profilereply);
   return grpc::Status::OK;
 }
 

@@ -19,8 +19,7 @@ using google::protobuf::Any;
 // Macros for prefixes
 #define USR_PRE "USR"
 #define WARB_PRE "WAR"
-#define FOLLOWING_PRE "FOLLOWING"
-#define FOLLOWER_PRE "FOLLOWER"
+#define CHILDREN_PRE "CHILDREN"
 
 class WarbleCode {
 public:
@@ -32,14 +31,14 @@ public:
   // a warble object, reply to pack response if necessary Return: grpc Status to
   // indicate if creating warble was successful (OK) or unsuccessful (CANCELLED)
   grpc::Status CreateWarble(const google::protobuf::Any &request,
-                            google::protobuf::Any &reply);
+                            google::protobuf::Any *reply);
 
   // Unpacks any response into new user
   // Parameters: request object containing message information that unpacks into
   // a user object, reply to pack response if necessary Return: grpc Status to
   // indicate if creating user was successful (OK) or unsuccessful (CANCELLED)
   grpc::Status CreateUser(const google::protobuf::Any &request,
-                          google::protobuf::Any &reply);
+                          google::protobuf::Any *reply);
 
   // Unpacks any response into reply warble (warble)
   // Parameters: request object containing message information that unpacks into
@@ -47,7 +46,7 @@ public:
   // indicate if creating warble reply was successful (OK) or unsuccessful
   // (CANCELLED)
   grpc::Status CreateWarbleReply(const google::protobuf::Any &request,
-                                 google::protobuf::Any &reply);
+                                 google::protobuf::Any *reply);
 
   // Unpacks any response into follow request
   // Parameters: request object containing message information that unpacks into
@@ -55,21 +54,21 @@ public:
   // necessary Return: grpc Status to indicate if following user was successful
   // (OK) or unsuccessful (CANCELLED)
   grpc::Status Follow(const google::protobuf::Any &request,
-                      google::protobuf::Any &reply);
+                      google::protobuf::Any *reply);
 
   // Unpacks any response into id of warble user wants to read
   // Parameters: request object containing id of which warble user wants to
   // read, reply has warble object to display to user Return: grpc Status to
   // indicate if getting warble was successful (OK) or unsuccessful (CANCELLED)
   grpc::Status Read(const google::protobuf::Any &request,
-                    google::protobuf::Any &reply);
+                    google::protobuf::Any *reply);
 
   // Unpacks ay response into username of profile to display
   // Parameters: request object containing id of which profile user wants to
   // see, reply has user's follow/follower information Return: grpc Status to
   // indicate if getting user was successful (OK) or unsuccessful (CANCELLED)
   grpc::Status Profile(const google::protobuf::Any &request,
-                       google::protobuf::Any &reply);
+                       google::protobuf::Any *reply);
 
   // Function to check whether key already exists in the database
   // Parameters: key to search in the database

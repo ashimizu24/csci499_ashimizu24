@@ -28,7 +28,7 @@ grpc::Status FuncHandler::event(grpc::ServerContext *context,
   auto it2 = typetofuncmap_.find(eventtype);
   if (it2 != typetofuncmap_.end()) {
     auto &func = it2->second;
-    return func(this->wc_, request->payload(), *response->mutable_payload());
+    return func(this->wc_, request->payload(), response->mutable_payload());
   }
 
   return grpc::Status::CANCELLED;

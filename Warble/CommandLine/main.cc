@@ -55,7 +55,7 @@ void FuncClient::RegisterUser(const std::string &username) {
   *request.mutable_payload() = payload;
 
   grpc::Status status = stub_->event(&context, request, &reply);
-  // return status;
+
   if (status.ok()) {
     std::cout << "New User Created: " << username << std::endl;
   } else {
@@ -92,10 +92,18 @@ void FuncClient::CreateWarbleReply(const std::string &username,
   warble::WarbleReply warblereply;
 
   grpc::Status status = stub_->event(&context, request, &reply);
-  if (status.ok()) {
-    std::cout << "New Warble Created " << id << std::endl;
+  if(status.ok()) {
+    if(reply.payload().UnpackTo(&warblereply)) {
+      warble::Warble warble = warblereply.warble();
+      std::cout << "New Warble Created!\n";
+      std::cout << "ID: " << warble.id() << std::endl;
+      std::cout << "Author: " << warble.username() << std::endl;
+      std::cout << "Time Posted: " << warble.timestamp().seconds() << std::endl;
+      std::cout << "Text: " << warble.text() << std::endl;
+    }
   } else {
     std::cout << "Warble was not able to be created\n";
+    std::cout << status.error_message() << std::endl;
   }
 }
 
@@ -145,16 +153,21 @@ void FuncClient::Read(const std::string &warbleid) {
 
   grpc::Status status = stub_->event(&context, request, &reply);
 
-  if (status.ok()) {
-    if (reply.payload().UnpackTo(&readreply)) {
+  if(status.ok()) {
+    if(reply.payload().UnpackTo(&readreply)) {
       std::vector<warble::Warble> warbles;
       std::copy(readreply.warbles().begin(), readreply.warbles().end(),
                 std::back_inserter(warbles));
       std::reverse(warbles.begin(), warbles.end());
 
       for (warble::Warble warble : warbles) {
-        std::cout << warble.timestamp().seconds() << "   " << warble.username()
-                  << ": " << warble.text() << std::endl;
+        std::cout << "WARBLE " << warble.id() << std::endl;
+        if(warble.parent_id().compare("-1") != 0){
+          std::cout << "Replying to Warble " << warble.parent_id() << std::endl;
+        }
+        std::cout << "[" << warble.timestamp().seconds() << "] Author: " << warble.username() << std::endl;
+        std::cout << warble.text() << std::endl;
+        std::cout << "---------------------------" << std::endl;
       }
     }
   } else {
@@ -215,6 +228,8 @@ void FuncClient::HookEvents() {
   typemap_.insert({"Profile", kProfile});
   typemap_.insert({"Create Warble Reply", kReply});
 
+  grpc::Status status;
+
   for (auto it = typemap_.begin(); it != typemap_.end(); ++it) {
     grpc::ClientContext context;
     func::HookRequest request;
@@ -223,15 +238,31 @@ void FuncClient::HookEvents() {
     request.set_event_function(it->first);
     grpc::Status status = stub_->hook(&context, request, &reply);
   }
+
+  if(status.ok()) {
+    std::cout << "All events were hooked successfully\n";
+  }
+  else {
+    std::cout << "Hooking events was unsuccessful\n";
+  }
+
 }
 
 void FuncClient::UnhookEvents() {
+  grpc::Status status;
   for (auto it = typemap_.begin(); it != typemap_.end(); ++it) {
     grpc::ClientContext context;
     func::UnhookRequest request;
     func::UnhookReply reply;
     request.set_event_type(it->second);
-    grpc::Status status = stub_->unhook(&context, request, &reply);
+    status = stub_->unhook(&context, request, &reply);
+  }
+
+  if(status.ok()) {
+    std::cout << "All events were unhooked successfully\n";
+  }
+  else {
+    std::cout << "Unhooking events was unsuccessful\n";
   }
 }
 
