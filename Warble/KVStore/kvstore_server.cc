@@ -1,26 +1,56 @@
+<<<<<<< HEAD
 #include <grpcpp/grpcpp.h>
 
 #include "kvstore.pb.h"
 #include "kvstore.cc"
+
 #include "kvstore_server.h"
-#include "protobuf-3.11.2/src/google/protobuf/stubs/status.h"
 
-  // Returns a result that indicates whether the put was successful
-Status put(ServerContext* context, const PutRequest request, PutReply reply) override {
-  // TODO - implement getting request and putting it in kvstore
-  kvstore_client.Put(request.key(), request.value());
-  return Status::OK;
+grpc::Status KeyValueStoreImpl::put(grpc::ServerContext *context,
+                                    const kvstore::PutRequest *request,
+                                    kvstore::PutReply *reply) {
+  kvstore_.Put(request->key(), request->value());
+  return grpc::Status::OK;
 }
 
-  // Returns a previously stored value or values under that key or nothing if the key is not present in the store
-Status get(ServerContext* context, ServerReaderWriter<GetReply, GetRequest> *stream) override {
-	// TODO - implement gett
-	// replylist should be list of values under that key
-	// stream->write() and stream->read() to call ServerReaderWriter
-  return Status::OK;
+grpc::Status KeyValueStoreImpl::get(
+    grpc::ServerContext *context,
+    grpc::ServerReaderWriter<kvstore::GetReply, kvstore::GetRequest> *stream) {
+  // replylist should be list of values under that key
+  kvstore::GetRequest request;
+  kvstore::GetReply reply;
+
+  while (stream->Read(&request)) {
+    // Get response from database
+    std::string ret = kvstore_.Get(request.key());
+    reply.set_value(ret);
+
+    stream->Write(reply);
+  }
+  return grpc::Status::OK;
 }
 
-  // deletes all previously stored values under that key
-Status remove(ServerContext* context, const RemoveRequest request, RemoveReply reply) override {
-	return Status::OK;
+grpc::Status KeyValueStoreImpl::remove(grpc::ServerContext *context,
+                                       const kvstore::RemoveRequest *request,
+                                       kvstore::RemoveReply *reply) {
+  kvstore_.Remove(request->key());
+  return grpc::Status::OK;
+
+}
+
+void RunServer() {
+  std::string server_address("0.0.0.0:50002");
+  KeyValueStoreImpl service;
+
+  grpc::ServerBuilder builder;
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  builder.RegisterService(&service);
+  std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+  std::cout << "kvstore server listening on " << server_address << std::endl;
+  server->Wait();
+}
+
+int main(int argc, char *argv[]) {
+  RunServer();
+  return 0;
 }

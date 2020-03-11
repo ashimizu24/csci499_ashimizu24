@@ -1,31 +1,24 @@
 #include "kvstore_database.h"
 
 // Insert given key and value pair into the database
-void KVStoreDb::Put(const std::string key, const std::optional<std::vector<std::string>> value) {
-  db.insert ( {key, value} );
+void KVStoreDb::Put(const std::string key, const std::string value) {
+  db_.insert({key, value});
 }
 
 // Based on a given key - get the value associated from the database
-// Returns tuple - first parameter indicates whether it was successful (1) or not found (0)
-// If successful (1) - second parameter contains all the values under that key
-std::pair<bool, std::vector<std::string> > KVStoreDb::Get(const std::string key) {
-  std::vector<std::string> values;
-  bool success = 0;
+// Returns tuple - first parameter indicates whether it was found (1) or not
+// found (0) If successful (1) - second parameter contains all the values under
+// that key
+std::string KVStoreDb::Get(const std::string key) {
+  auto it = db_.find(key);
 
-  for (auto it = db.begin(); it != db.end(); it++) {
-    if (it -> first == key) {
-      std::string value = it->second;
-      values.push_back(value);
-      success = 1;
-    }
-  } 
+  if (it != db_.end()) {
+    return it->second;
+  }
 
-  return std::make_pair (success, values);
+  return "does not exist";
 }
 
 // Remove data from the database from a given key
-void KVStoreDb::Remove(std::string key) {
-  // TODO: error check - what if key doesn't exist
-  db.erase (key);
-}
+void KVStoreDb::Remove(std::string key) { db_.erase(key); }
 
