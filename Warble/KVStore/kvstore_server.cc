@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-#include <grpcpp/grpcpp.h>
-
-#include "kvstore.pb.h"
-#include "kvstore.cc"
-
 #include "kvstore_server.h"
 
 grpc::Status KeyValueStoreImpl::put(grpc::ServerContext *context,

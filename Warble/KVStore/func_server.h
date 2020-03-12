@@ -4,21 +4,16 @@
 #include <string.h>
 
 #include <grpcpp/grpcpp.h>
-// #include <gflags/gflags.h>
-// #include <glog/logging.h>
 
 #include "../commandline/events.h"
 #include "func.grpc.pb.h"
 #include "func.pb.h"
 #include "kvstore.grpc.pb.h"
 #include "warble_code.h"
-// #include "KVWrapper.cc"
 
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
-
-// TODO - compile error saying KeyValueStore has not been declared
 
 // Server that takes in processes requests from the commandline and redirects
 // them to the kvstore

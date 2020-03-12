@@ -3,7 +3,6 @@
 #include "../database/kvstore_database.h"
 #include "kvstore.grpc.pb.h"
 #include "kvstore.pb.h"
-#include "../database/kvstore_database.h"
 
 using grpc::Status;
 

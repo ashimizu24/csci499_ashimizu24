@@ -98,28 +98,28 @@ grpc::Status WarbleCode::Follow(const google::protobuf::Any &request,
     std::string tofollow_key = USR_PRE + followrequest.to_follow();
     // Check if both users exists
     if (!ValExists(usrname_key) || !ValExists(tofollow_key)) {
-      return grpc::Status::CANCELLED;
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "One or more of the users are invalid");
     }
     // Check if users are the same
     if (usrname_key.compare(tofollow_key) == 0) {
-      return grpc::Status::CANCELLED;
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Users are the same");
     }
 
     // Check if users are already following each other
-    std::string check = kvstore_->GetRequest(tofollow_key);
-    std::stringstream section(check);
+    std::string check_key = kvstore_->GetRequest(tofollow_key);
+    std::stringstream section(check_key);
     std::string section_token;
     while (std::getline(section, section_token, '/')) {
       std::stringstream ss(section_token);
       std::string token;
       while (std::getline(ss, token, ',')) {
-        if (token.compare(followrequest.username()) ==
-            0) { // user already followers
-          return grpc::Status::CANCELLED;
+        if (token.compare(followrequest.username()) == 0) { 
+          return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Users are already following each other");
         }
       }
       break;
     }
+
     // Add following to user
     std::string usrname_val = kvstore_->GetRequest(usrname_key);
     usrname_val += followrequest.to_follow();
@@ -144,7 +144,7 @@ grpc::Status WarbleCode::Read(const google::protobuf::Any &request,
 
     // Check if warble id exists in kvstore
     if (kvstore_->GetRequest(key).compare("does not exist") == 0) { 
-      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Warble doesn't exist");
+      return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Invalid warble id");
     }
     std::string children_key = CHILDREN_PRE + readrequest.warble_id();
     std::string children = kvstore_->GetRequest(children_key);
@@ -168,12 +168,12 @@ grpc::Status WarbleCode::Read(const google::protobuf::Any &request,
         std::stringstream gchild_ss(grandchild_val);
         std::string grandchild_token;
         while (std::getline(gchild_ss, grandchild_token, ',')) {
-          std::cout << "grandchild found " << children << std::endl;
           all_warbles.push_back(grandchild_token);
           num_children++; 
         }
       }
     }
+
   }
   reply->PackFrom(readreply);
   return grpc::Status::OK;
