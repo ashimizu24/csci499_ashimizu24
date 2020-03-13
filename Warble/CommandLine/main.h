@@ -1,11 +1,12 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <grpcpp/grpcpp.h>
 
 #include "../kvstore/func.grpc.pb.h"
 #include "../kvstore/warble.pb.h"
 #include "events.h"
-#include <grpcpp/grpcpp.h>
+
 
 class FuncClient {
 public:

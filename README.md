@@ -80,7 +80,8 @@ Add **/vagrant_data** as shared folder name</br>
 ### Warble Commands
 ------
 ###### *Main quits after every command is run*
-##### Hook functions ###### This must be run first before any warble commands are run
+##### Hook functions
+###### This must be run first before any warble commands are run
 ```$ ./main -hook```
 
 ##### Unhook functions

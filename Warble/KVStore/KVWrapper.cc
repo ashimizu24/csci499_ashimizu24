@@ -13,6 +13,7 @@
 #include "../database/kvstore_database.h"
 #include "../kvstore/kvstore.grpc.pb.h"
 
+// Wrapper class for calling the KVStore either directly or via GRPC
 class KVBase {
 public:
   virtual void PutRequest(const std::string key, const std::string value) = 0;

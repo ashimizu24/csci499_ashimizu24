@@ -1,7 +1,6 @@
 #include <getopt.h>
 #include <iostream>
 #include <string>
-
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <google/protobuf/any.h>
