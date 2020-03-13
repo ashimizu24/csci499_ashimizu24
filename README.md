@@ -11,7 +11,7 @@ CSCI499 - Warble
 
 #### Get project from Github
 ```$ git clone https://github.com/ashimizu24/csci499_ashimizu24.git```
-
+</br>
 ### Set up VM
 ------
 #### First download vagrant using this link
@@ -21,9 +21,9 @@ CSCI499 - Warble
 $ vagrant init hashicorp-vagrant/ubuntu-16.04
 ```
 #### Open the Vagrantfile
-##### Verfiy this line is there
+##### - Verfiy this line is there
 ```config.vm.box = "hashicorp-vagrant/ubuntu-16.04" ```
-##### Create Shared Folder
+##### - Create Shared Folder
 Uncomment ```config.vm.synced_folder ``` in Vagrantfile </br>
 Add **/vagrant_data** as shared folder name</br>
 ```config.vm.synced_folder ".", "/vagrant_data"```</br>
@@ -33,7 +33,7 @@ Add **/vagrant_data** as shared folder name</br>
 ```$ vagrant up```
 #### SSH into Vagrant
 ```$ vagrant ssh```
-
+</br>
 ### Add Configurations
 ------
 #### Run the following commands to install make
@@ -59,13 +59,13 @@ Add **/vagrant_data** as shared folder name</br>
 
 #### Install gtest
 ```$ sudo apt-get -y install libgtest-dev```
-
+</br>
 ### Get into shared folder directory
 ------
 ###### Make sure you're still SSHed into vagrant still 
 ```$ cd ```</br>
 ```$ cd /vagrant_data/ashimizu_warble/warble/kvstore```</br>
-
+</br>
 ### Run Project
 ------
 ##### Compile Project
@@ -76,12 +76,11 @@ Add **/vagrant_data** as shared folder name</br>
 ```$ ./kvstore_server```
 ##### Run Func Server
 ```$ ./func_server```
-
+</br>
 ### Warble Commands
 ------
 ###### *Main quits after every command is run*
-##### Hook functions
-###### This must be run first before any warble commands are run
+##### Hook functions ###### This must be run first before any warble commands are run
 ```$ ./main -hook```
 
 ##### Unhook functions
@@ -108,7 +107,7 @@ Add **/vagrant_data** as shared folder name</br>
 ###### Username after follow is person you want to follow
 ```$ ./main -user <username> -follow <username>```
 
-##### View User Profile
+#### View User Profile
 ###### Profile displays who the user is following and their followers
 ```$ ./main -user <username> -profile ```
 
