@@ -253,7 +253,14 @@ void FuncClient::HookEvents() {
 }
 
 void FuncClient::UnhookEvents() {
-  grpc::Status status;
+  typemap_.insert({"Register User", kRegisterUser});
+  typemap_.insert({"Create Warble", kWarble});
+  typemap_.insert({"Follow", kFollow});
+  typemap_.insert({"Read Warble", kRead});
+  typemap_.insert({"Profile", kProfile});
+  typemap_.insert({"Create Warble Reply", kReply});
+  grpc::Status status = grpc::Status::CANCELLED;
+
   for (auto it = typemap_.begin(); it != typemap_.end(); ++it) {
     grpc::ClientContext context;
     func::UnhookRequest request;

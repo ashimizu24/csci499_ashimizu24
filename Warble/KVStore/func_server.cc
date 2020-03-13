@@ -3,9 +3,7 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <google/protobuf/any.h>
-// Hook processes messages and calls certain event types
-// hook done by operator (who's running the warble service) like warble hook is
-// 17
+
 grpc::Status FuncHandler::hook(grpc::ServerContext *context,
                                const func::HookRequest *request,
                                func::HookReply *reply) {
@@ -15,7 +13,7 @@ grpc::Status FuncHandler::hook(grpc::ServerContext *context,
 grpc::Status FuncHandler::unhook(grpc::ServerContext *context,
                                  const func::UnhookRequest *request,
                                  func::UnhookReply *reply) {
-  typetofuncmap_.erase(request->event_type());
+  typetofuncmap_.clear();
   return grpc::Status::OK;
 }
 
