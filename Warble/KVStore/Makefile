@@ -48,7 +48,7 @@ vpath %.proto $(PROTOS_PATH)
 
 all: system-check main func_server kvstore_server kvstore_db_test warble_test
 
-main: ../commandline/main.o func.pb.o func.grpc.pb.o kvstore.pb.o kvstore.grpc.pb.o warble.pb.o
+main: func.pb.o func.grpc.pb.o kvstore.pb.o kvstore.grpc.pb.o warble.pb.o ../commandline/main.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 func_server: func.pb.o func.grpc.pb.o func_server.o warble_code.o warble.pb.o kvstore.grpc.pb.o kvstore.pb.o KVWrapper.o
@@ -62,11 +62,6 @@ kvstore_db_test: ../tests/kvstore_database_test.o ../database/kvstore_database.o
 
 warble_test: ../tests/warble_service_test.o ../kvstore/warble_code.o ../kvstore/warble.pb.o ../database/kvstore_database.o
 	$(CXX) $^ $(LDFLAGS) -o $@
-# greeter_async_client: helloworld.pb.o helloworld.grpc.pb.o greeter_async_client.o
-# 	$(CXX) $^ $(LDFLAGS) -o $@
-
-# greeter_async_client2: helloworld.pb.o helloworld.grpc.pb.o greeter_async_client2.o
-# 	$(CXX) $^ $(LDFLAGS) -o $@
 
 %.grpc.pb.cc: %.proto
 	$(PROTOC) -I $(PROTOS_PATH) --grpc_out=. --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
@@ -75,7 +70,7 @@ warble_test: ../tests/warble_service_test.o ../kvstore/warble_code.o ../kvstore/
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h main func_server kvstore_server
+	rm -f *.o *.pb.cc *.pb.h main func_server kvstore_server ../database/*.o ../CommandLine/*.o
 
 # The following is to test your system and ensure a smoother experience.
 # They are by no means necessary to actually compile a grpc-enabled software.
