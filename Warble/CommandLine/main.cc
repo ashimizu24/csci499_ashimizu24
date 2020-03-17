@@ -211,8 +211,8 @@ void FuncClient::Profile(const std::string &username) {
       std::copy(profreply.following().begin(), profreply.following().end(),
                 std::back_inserter(following));
       std::cout << "Following: ";
-      for (std::string following : following) {
-        std::cout << following << std::endl;
+      for (std::string followings : following) {
+        std::cout << followings << std::endl;
       }
       std::cout << "\n\n";
     }

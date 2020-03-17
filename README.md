@@ -59,6 +59,14 @@ Add **/vagrant_data** as shared folder name</br>
 
 #### Install gtest
 ```$ sudo apt-get -y install libgtest-dev```
+
+#### Other Installation
+```$ sudo apt-get install cmake```</br>
+```$ cd /usr/src/gtest ```</br>
+```$ sudo cmake CMakeLists.txt```</br>
+```$ sudo make sudo```
+```$ cp *.a /usr/lib```
+
 </br>
 ### Get into shared folder directory
 ------
