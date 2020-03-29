@@ -26,18 +26,23 @@ grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
       google::protobuf::util::TimeUtil::GetCurrentTime());
   timestamp->set_seconds(seconds);
   timestamp->set_useconds(useconds);
-  // convert int warble id to char*
-  std::string warble_cnt_str = std::to_string(warble_cnt);
+
+  // Getting unique warble id
+  std::string warble_cnt = kvstore_->GetRequest(WARB_ID);
+  if(warble_cnt.compare("does not exist") == 0){
+    warble_cnt = "0";
+    kvstore_->PutRequest(WARB_ID, warble_cnt);
+  }
 
   // Create new warble from unpacking warble request and adding parameters
   warble::Warble new_warble;
   warble::WarbleRequest warble_request;
   if (request.UnpackTo(&warble_request)) {
     // Add elements that were not in the WarbleRequest
-    std::string newwarble_key = WARB_PRE + std::to_string(warble_cnt);
+    std::string newwarble_key = WARB_PRE + warble_cnt;
 
     // Check parent id
-    if(std::stoi(warble_request.parent_id()) >= warble_cnt || std::stoi(warble_request.parent_id()) < -1){
+    if(std::stoi(warble_request.parent_id()) >= std::stoi(kvstore_->GetRequest(WARB_ID)) || std::stoi(warble_request.parent_id()) < -1){
       return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Parent id is invalid");
     }
 
@@ -53,23 +58,28 @@ grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
 
        // Warble doesn't have any children yet
       if(newchild_value.compare("does not exist") == 0){ 
-        kvstore_->PutRequest(newchild_key, warble_cnt_str);
+        kvstore_->PutRequest(newchild_key, warble_cnt);
       }
       else{
         newchild_value += ",";
-        newchild_value += warble_cnt_str;
+        newchild_value += warble_cnt;
         kvstore_->RemoveRequest(newchild_key);
         kvstore_->PutRequest(newchild_key, newchild_value);
       }
     }
 
-    new_warble.set_id(warble_cnt_str);
+    new_warble.set_id(warble_cnt);
     new_warble.set_allocated_timestamp(timestamp);
     new_warble.set_username(warble_request.username());
     new_warble.set_text(warble_request.text());
     new_warble.set_parent_id(warble_request.parent_id());
 
-    warble_cnt++; // incremement unique id for warble
+    // incremement unique id for warble
+    int temp = std::stoi(warble_cnt);
+    temp++;
+    kvstore_->RemoveRequest(WARB_ID);
+    kvstore_->PutRequest(WARB_ID, std::to_string(temp));
+
 
     // serialize warble into byte string to store in kvstore
     std::string newwarble_value;
