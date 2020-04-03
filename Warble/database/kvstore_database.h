@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
 
 // Database class - holds unordered map with all warble information
 // key - prefix (what type of data) + id (user id/warble id)
@@ -28,4 +29,5 @@ public:
 private:
   // database mapping key (prefix+id/username) to serialized struct
   std::unordered_map<std::string, std::string> db_;
+  std::mutex mut;
 };
