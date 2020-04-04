@@ -11,6 +11,8 @@
 class KVStoreDb {
 
 public:
+  KVStoreDb() : db_(), mut_() {}
+  
   // Insert given key and value pair into the database
   // Parameters: string with the key and value to insert into db
   // Return: void
@@ -29,5 +31,5 @@ public:
 private:
   // database mapping key (prefix+id/username) to serialized struct
   std::unordered_map<std::string, std::string> db_;
-  std::mutex mut;
+  std::mutex mut_;
 };
