@@ -2,9 +2,7 @@
 
 // Insert given key and value pair into the database
 void KVStoreDb::Put(const std::string key, const std::string value) {
-  std::cout << "put\n";
   std::lock_guard<std::mutex> lock_gaurd(mut_);
-  std::cout << "putt\n";
   db_.insert({key, value});
 }
 
@@ -13,23 +11,17 @@ void KVStoreDb::Put(const std::string key, const std::string value) {
 // found (0) If successful (1) - second parameter contains all the values under
 // that key
 std::string KVStoreDb::Get(const std::string key) {
-  std::cout << "get\n";
   std::lock_guard<std::mutex> lock_gaurd(mut_);
-  std::cout << "get2\n";
   auto it = db_.find(key);
 
   if (it != db_.end()) {
-  	//mut.unlock();
     return it->second;
   }
-  std::cout << "gets\n";
- // mut.unlock();
   return "does not exist";
 }
 
 // Remove data from the database from a given key
 void KVStoreDb::Remove(std::string key) { 
-	std::cout << "rem\n";
   std::lock_guard<std::mutex> lock_gaurd(mut_);
   db_.erase(key); 
 }
