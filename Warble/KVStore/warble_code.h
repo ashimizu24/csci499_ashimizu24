@@ -20,6 +20,7 @@ using google::protobuf::Any;
 #define USR_PRE "USR"
 #define WARB_PRE "WAR"
 #define CHILDREN_PRE "CHILDREN"
+#define WARB_ID "ID"
 
 class WarbleCode {
 public:
@@ -78,5 +79,4 @@ public:
 
 private:
   std::unique_ptr<KVBase> kvstore_; // ptr to wrapper class of kvstore
-  int warble_cnt = 0;               // Unique warble id
 };
