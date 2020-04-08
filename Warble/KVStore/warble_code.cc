@@ -63,7 +63,7 @@ grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
       else{
         newchild_value += ",";
         newchild_value += warble_cnt;
-        kvstore_->RemoveRequest(newchild_key);
+        //kvstore_->RemoveRequest(newchild_key);
         kvstore_->PutRequest(newchild_key, newchild_value);
       }
     }
@@ -77,7 +77,7 @@ grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
     // incremement unique id for warble
     int temp = std::stoi(warble_cnt);
     temp++;
-    kvstore_->RemoveRequest(WARB_ID);
+    //kvstore_->RemoveRequest(WARB_ID);
     kvstore_->PutRequest(WARB_ID, std::to_string(temp));
 
 
@@ -134,12 +134,12 @@ grpc::Status WarbleCode::Follow(const google::protobuf::Any &request,
     std::string usrname_val = kvstore_->GetRequest(usrname_key);
     usrname_val += followrequest.to_follow();
     usrname_val += ",";
-    kvstore_->RemoveRequest(usrname_key);
+    //kvstore_->RemoveRequest(usrname_key);
     kvstore_->PutRequest(usrname_key, usrname_val);
     // Add follower to user
     std::string tofollow_val = kvstore_->GetRequest(tofollow_key);
     tofollow_val = followrequest.username() + "," + tofollow_val;
-    kvstore_->RemoveRequest(tofollow_key);
+   // kvstore_->RemoveRequest(tofollow_key);
     kvstore_->PutRequest(tofollow_key, tofollow_val);
   }
   return grpc::Status::OK;

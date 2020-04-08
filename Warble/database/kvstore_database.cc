@@ -3,7 +3,13 @@
 // Insert given key and value pair into the database
 void KVStoreDb::Put(const std::string key, const std::string value) {
   std::lock_guard<std::mutex> lock_gaurd(mut_);
-  db_.insert({key, value});
+  auto it = db_.find(key);
+  if(it != db_.end()) {
+    it->second = value;
+  }
+  else {
+    db_.insert({key, value});
+  }
 }
 
 // Based on a given key - get the value associated from the database

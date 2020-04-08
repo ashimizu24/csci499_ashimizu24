@@ -1,4 +1,7 @@
 #include <grpcpp/grpcpp.h>
+#include <gflags/gflags.h>
+#include <fstream>
+#include <sstream>
 
 #include "../database/kvstore_database.h"
 #include "kvstore.grpc.pb.h"
@@ -33,6 +36,10 @@ public:
                       const kvstore::RemoveRequest *request,
                       kvstore::RemoveReply *reply) override;
 
+  void FileStorage(const std::string filename);
+
 private:
   KVStoreDb kvstore_;
+  std::string storagefile_;
+  bool storage_;
 };
