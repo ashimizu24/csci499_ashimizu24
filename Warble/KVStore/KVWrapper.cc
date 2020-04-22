@@ -9,6 +9,8 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
+#include <bits/stdc++.h>
+#include <vector>
 
 #include "../database/kvstore_database.h"
 #include "../kvstore/kvstore.grpc.pb.h"
@@ -19,6 +21,9 @@ public:
   virtual void PutRequest(const std::string key, const std::string value) = 0;
   virtual std::string GetRequest(const std::string key) = 0;
   virtual void RemoveRequest(const std::string key) = 0;
+  virtual std::unordered_set<std::string> StreamGetRequest(std::string hashtag) = 0;
+  virtual void StreamPutRequest(std::vector<std::string> splited_warble_texts, 
+                                std::string serialized_warble) = 0;
 };
 
 // KVStore that interacts straight with the database for testing
@@ -33,6 +38,14 @@ public:
   }
 
   void RemoveRequest(const std::string key) override { kvstore_.Remove(key); }
+
+  std::unordered_set<std::string> StreamGetRequest(std::string hashtag) {
+    // to be completed
+  }
+
+  void StreamPutRequest(std::vector<std::string> splited_warble_texts, std::string serialized_warble) {
+    //to be completed
+  }
 
 private:
   KVStoreDb kvstore_;
@@ -91,6 +104,23 @@ public:
       std::cout << status.error_code() << ": " << status.error_message()
                 << std::endl;
     }
+  }
+
+  // StreamGetRequest method is used to query warbles that 
+  // contain hashtag from kvstore server.
+  // Parameters: hashtag.
+  // Return: A set of warbles, which contain hashtag in their text.
+  std::unordered_set<std::string> StreamGetRequest(std::string hashtag) {
+    // to be completed
+  }
+
+  // StreamPutRequest method is used to add warble to hashtag. 
+  // If the text of warble contains some hashtags, then the warble will be added to 
+  // corresponding set of the hashtag.
+  // Parameters: splited_warble_texts: warble_texts after spliting by space.
+  //             serialized_warble: warble after serialization.
+  void StreamPutRequest(std::vector<std::string> splited_warble_texts, std::string serialized_warble) {
+    //to be completed
   }
 
 private:

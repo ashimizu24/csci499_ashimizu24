@@ -27,8 +27,27 @@ message RemoveReply {
   // Empty because success/failure is signaled via GRPC status.
 }
 
+message GetStreamRequest {
+  string hashtag = 1;
+}
+
+message GetStreamReply {
+  repeated string serialized_warbles = 1;
+}
+
+message PutStreamRequest {
+  repeated string warble_texts = 1;
+  string serialized_warble = 2;
+}
+
+message PutStreamReply {
+  // Empty because success/failure is signaled via GRPC status.
+}
+
 service KeyValueStore {
   rpc put (PutRequest) returns (PutReply) {}
   rpc get (stream GetRequest) returns (stream GetReply) {}
   rpc remove (RemoveRequest) returns (RemoveReply) {}
+  rpc StreamGet (GetStreamRequest) returns (GetStreamReply) {}
+  rpc StreamPut (PutStreamRequest) returns (PutStreamReply) {}
 }

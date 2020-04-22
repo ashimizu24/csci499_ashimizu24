@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -47,6 +48,12 @@ public:
   // Parameter: string of user of profile to view
   // Return: void
   void Profile(const std::string &username);
+
+  // Read warbles posted by all users that contain
+  // hashtag in their text.
+  // Parameters: hashtag
+  // Return: void
+  void Stream(const std::string hashtag);
 
   // Sends hook request to func_server
   // Parameter, Return: void

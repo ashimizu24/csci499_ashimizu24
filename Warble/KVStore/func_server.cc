@@ -50,6 +50,7 @@ void FuncHandler::PopulateMap() {
   nametofuncmap_.insert({"Profile", &WarbleCode::Profile});
   nametofuncmap_.insert(
       {"Create Warble Reply", &WarbleCode::CreateWarbleReply});
+  nametofuncmap_.insert({"Stream Warble", &WarbleCode::Stream});
 }
 
 void RunServer() {

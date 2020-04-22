@@ -2,6 +2,7 @@
 #include "KVWrapper.cc"
 #include "warble.pb.h"
 #include <bitset>
+#include <vector>
 #include <fstream>
 #include <google/protobuf/any.pb.h>
 #include <google/protobuf/util/time_util.h>
@@ -13,6 +14,7 @@
 #include <grpcpp/server_context.h>
 #include <sstream>
 #include <thread>
+#include <bits/stdc++.h>
 
 using google::protobuf::Any;
 
@@ -69,6 +71,12 @@ public:
   // indicate if getting user was successful (OK) or unsuccessful (CANCELLED)
   grpc::Status Profile(const google::protobuf::Any &request,
                        google::protobuf::Any *reply);
+  
+  // Unpacks request into hashtag and query warbles from kvstore_ to return.
+  // Parameters: request object contains a string of hashtag
+  // Return: serialized warbles that contain hashtag in its text.
+  grpc::Status Stream(const google::protobuf::Any &request, 
+                      google::protobuf::Any *reply);
 
   // Function to check whether key already exists in the database
   // Parameters: key to search in the database
