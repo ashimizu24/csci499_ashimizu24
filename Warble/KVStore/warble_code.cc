@@ -227,7 +227,7 @@ grpc::Status WarbleCode::Stream(const google::protobuf::Any &request,
   warble::StreamReply streamreply;
   if (request.UnpackTo(&streamrequest)) {
     std::string hashtag = streamrequest.hashtag();
-    std::unordered_set<std::string> serialized_warbles = kvstore_->StreamGetRequest(hashtag);
+    std::vector<std::string> serialized_warbles = kvstore_->StreamGetRequest(hashtag);
     for (std::string serialized_warble : serialized_warbles) {
       warble::Warble warble;
       warble.ParseFromString(serialized_warble);

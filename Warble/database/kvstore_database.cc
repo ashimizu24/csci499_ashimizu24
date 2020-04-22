@@ -26,7 +26,7 @@ void PutStream(const std::string hashtag, const std::string serialized_warble) {
   //to be completed
 }
 
-std::unordered_set<std::string> GetStream(const std::string hashtag) {
+std::vector<std::string> GetStream(const std::string hashtag) {
   //to be completed
 }
 

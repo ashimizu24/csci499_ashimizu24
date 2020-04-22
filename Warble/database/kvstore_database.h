@@ -3,7 +3,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <bits/stdc++.h>
 
 // Database class - holds unordered map with all warble information
 // key - prefix (what type of data) + id (user id/warble id)
@@ -34,7 +33,7 @@ public:
   // contain hashtag in their text.
   // Parameters: hashtag as key
   // Return: a set of distinct serialized warbles.
-  std::unordered_set<std::string> GetStream(const std::string hashtag);
+  std::vector<std::string> GetStream(const std::string hashtag);
 
 
 private:
@@ -42,8 +41,5 @@ private:
   std::unordered_map<std::string, std::string> db_;
 
   // database of hashtag, which is used to collect hashtag and warbles(unique)
-  // unordered_set is used instead of vector because
-  // the text of a warble may contain hashtag more than once.
-  // Duplicate warbles of a hashtag should be avoided.
-  std::unordered_map<std::string, std::unordered_set<std::string>> hashtag_db_;
+  std::unordered_map<std::string, std::vector<std::string>> hashtag_db_;
 };
