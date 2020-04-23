@@ -21,7 +21,7 @@ public:
   virtual std::string GetRequest(const std::string key) = 0;
   virtual void RemoveRequest(const std::string key) = 0;
   virtual std::vector<std::string> StreamGetRequest(std::string hashtag) = 0;
-  virtual void StreamPutRequest(std::vector<std::string> splited_warble_texts, 
+  virtual void StreamPutRequest(std::vector<std::string> split_warble_texts, 
                                 std::string serialized_warble) = 0;
 };
 
@@ -42,7 +42,7 @@ public:
     // to be completed
   }
 
-  void StreamPutRequest(std::vector<std::string> splited_warble_texts, std::string serialized_warble) {
+  void StreamPutRequest(std::vector<std::string> split_warble_texts, std::string serialized_warble) {
     //to be completed
   }
 
@@ -116,9 +116,9 @@ public:
   // StreamPutRequest method is used to add warble to hashtag. 
   // If the text of warble contains some hashtags, then the warble will be added to 
   // corresponding vector of the hashtag.
-  // Parameters: splited_warble_texts: warble_texts after spliting by space.
+  // Parameters: split_warble_texts: warble_texts after spliting by space.
   //             serialized_warble: warble after serialization.
-  void StreamPutRequest(std::vector<std::string> splited_warble_texts, std::string serialized_warble) {
+  void StreamPutRequest(std::vector<std::string> split_warble_texts, std::string serialized_warble) {
     //to be completed
   }
 
