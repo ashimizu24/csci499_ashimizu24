@@ -28,16 +28,16 @@ message RemoveReply {
 }
 
 message GetStreamRequest {
-  string hashtag = 1;
+  bytes hashtag = 1;
 }
 
 message GetStreamReply {
-  repeated string serialized_warbles = 1;
+  repeated bytes serialized_warbles = 1;
 }
 
 message PutStreamRequest {
-  repeated string warble_texts = 1;
-  string serialized_warble = 2;
+  bytes warble_text = 1;
+  bytes serialized_warble = 2;
 }
 
 message PutStreamReply {

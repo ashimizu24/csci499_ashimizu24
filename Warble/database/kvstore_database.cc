@@ -22,11 +22,18 @@ std::string KVStoreDb::Get(const std::string key) {
 // Remove data from the database from a given key
 void KVStoreDb::Remove(std::string key) { db_.erase(key); }
 
-void PutStream(const std::string hashtag, const std::string serialized_warble) {
-  //to be completed
+void KVStoreDb::PutStream(const std::string hashtag, const std::string serialized_warble) {
+  if (hashtag_db_.find(hashtag) != hashtag_db_.end()) {
+     hashtag_db_[hashtag].push_back(serialized_warble);
+  }
 }
 
-std::vector<std::string> GetStream(const std::string hashtag) {
-  //to be completed
+std::vector<std::string> KVStoreDb::GetStream(const std::string hashtag) {
+	 if (hashtag_db_.find(hashtag) == hashtag_db_.end()) {
+	   hashtag_db_.insert({hashtag, {}});
+	   return {};
+	 }
+
+	 return hashtag_db_[hashtag];
 }
 

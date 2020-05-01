@@ -110,7 +110,18 @@ public:
   // Parameters: hashtag.
   // Return: A vector of warbles, which contain hashtag in their text.
   std::vector<std::string> StreamGetRequest(std::string hashtag) {
-    // to be completed
+    grpc::ClientContext context;
+    kvstore::GetStreamRequest request;
+    request.set_hashtag(hashtag);
+    kvstore::GetStreamReply reply;
+
+    grpc::Status status = stub_->StreamGet(&context, request, &reply);
+    std::vector<std::string> serialized_warbles_vec;
+    for (std::string serialized_warble : reply.serialized_warbles()) {
+      serialized_warbles_vec.push_back(serialized_warble);
+    }
+    
+    return serialized_warbles_vec;
   }
 
   // StreamPutRequest method is used to add warble to hashtag. 
@@ -120,6 +131,23 @@ public:
   //             serialized_warble: warble after serialization.
   void StreamPutRequest(std::vector<std::string> split_warble_texts, std::string serialized_warble) {
     //to be completed
+    if (split_warble_texts.size() == 0) {
+      return;
+    }
+    
+    for (std::string warble_text : split_warble_texts) {
+      grpc::ClientContext context;
+      kvstore::PutStreamRequest request;
+      request.set_warble_text(warble_text);
+      request.set_serialized_warble(serialized_warble);
+      kvstore::PutStreamReply reply;
+      grpc::Status status = stub_->StreamPut(&context, request, &reply);
+      if (!status.ok()) {
+        std::cout << status.error_code() << ": " << status.error_message()
+                  << std::endl;
+        break;
+      }
+    }
   }
 
 private:

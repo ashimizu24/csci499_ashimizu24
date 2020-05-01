@@ -1,5 +1,35 @@
 #include "warble_code.h"
 
+// This method split warble text into a vector of unique words.
+// Input : warlbe text in string format.
+// Output: A vector with unique words, which contains 
+// all unique split warble words. 
+std::vector<std::string> CreateUniqueWords(const std::string& warble_text) {
+  std::unordered_set<std::string> warble_word_set;
+  std::vector<std::string> split_warble_text_vec;
+  std::string word = "";
+  for (auto ch : warble_text) {
+    if (ch == ' ') {
+      if (word.length() != 0) {
+        warble_word_set.insert(word);
+        word = "";
+      }
+    } else {
+      word += ch;
+    }
+  }
+
+  if (word.length() > 0) {
+    warble_word_set.insert(word);
+  }
+
+  for (std::string warble_word : warble_word_set) {
+    split_warble_text_vec.push_back(warble_word);
+  }
+
+  return split_warble_text_vec;
+}
+
 grpc::Status WarbleCode::CreateUser(const google::protobuf::Any &request,
                                     google::protobuf::Any *reply) {
   // If user already doesn't exist
@@ -80,7 +110,8 @@ grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
 
     // After generating serialized warble, kvstore_->StreamPutRequest should
     // be called here to associate serialzed warble with hashtags.
-    // to be completed...
+    std::vector<std::string> split_warble_texts = CreateUniqueWords(warble_request.text());
+    kvstore_->StreamPutRequest(split_warble_texts, newwarble_value);
 
     warble::WarbleReply warblereply;
     *warblereply.mutable_warble() = new_warble;
@@ -231,7 +262,7 @@ grpc::Status WarbleCode::Stream(const google::protobuf::Any &request,
     for (std::string serialized_warble : serialized_warbles) {
       warble::Warble warble;
       warble.ParseFromString(serialized_warble);
-      *streamreply.add_warbles() = warble;
+      *(streamreply.add_warbles()) = warble;
     }
     reply->PackFrom(streamreply);
     return grpc::Status::OK;
