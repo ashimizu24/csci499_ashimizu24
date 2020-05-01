@@ -32,6 +32,20 @@ grpc::Status KeyValueStoreImpl::remove(grpc::ServerContext *context,
 
 }
 
+grpc::Status KeyValueStoreImpl::StreamGet(grpc::ServerContext *context,
+                         const kvstore::GetStreamRequest *request,
+                         kvstore::GetStreamReply *reply) {
+  //to be completed
+}
+
+grpc::Status KeyValueStoreImpl::StreamPut(grpc::ServerContext *context,
+                         const kvstore::PutStreamRequest *request,
+                         kvstore::PutStreamReply *reply) {
+  //to be completed
+  //for each text in request.warble_texts(): 
+  //if it's a hashtag, add request.serialized_warble() to hashtag_db_
+}
+
 void RunServer() {
   std::string server_address("0.0.0.0:50002");
   KeyValueStoreImpl service;

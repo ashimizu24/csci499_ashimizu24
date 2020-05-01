@@ -32,6 +32,21 @@ public:
   grpc::Status remove(grpc::ServerContext *context,
                       const kvstore::RemoveRequest *request,
                       kvstore::RemoveReply *reply) override;
+  
+  // Function that calls kvstore to get serialized warbles from db
+  // Parameters: GRPC server context, GetStream request, GetStream reply
+  // Return: GRPC status indicating correctness of getting warbles.
+  grpc::Status StreamGet(grpc::ServerContext *context,
+                         const kvstore::GetStreamRequest *request,
+                         kvstore::GetStreamReply *reply) override;
+  
+  // Function that calls kvstore to put serialized warbles to db
+  // if the text of warble contains some hashtag.
+  // Parameters: GRPC server context, PutStream request, PutStream reply
+  // Return: GRPC status indicating whether put process is successful.
+  grpc::Status StreamPut(grpc::ServerContext *context,
+                         const kvstore::PutStreamRequest *request,
+                         kvstore::PutStreamReply *reply) override;
 
 private:
   KVStoreDb kvstore_;

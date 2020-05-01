@@ -78,6 +78,10 @@ grpc::Status WarbleCode::CreateWarble(const google::protobuf::Any &request,
     // Add warble to database
     kvstore_->PutRequest(newwarble_key, newwarble_value);
 
+    // After generating serialized warble, kvstore_->StreamPutRequest should
+    // be called here to associate serialzed warble with hashtags.
+    // to be completed...
+
     warble::WarbleReply warblereply;
     *warblereply.mutable_warble() = new_warble;
     reply->PackFrom(warblereply);
@@ -215,6 +219,25 @@ grpc::Status WarbleCode::Profile(const google::protobuf::Any &request,
   }
   reply->PackFrom(profilereply);
   return grpc::Status::OK;
+}
+
+grpc::Status WarbleCode::Stream(const google::protobuf::Any &request,
+                                 google::protobuf::Any *reply) {
+  warble::StreamRequest streamrequest;
+  warble::StreamReply streamreply;
+  if (request.UnpackTo(&streamrequest)) {
+    std::string hashtag = streamrequest.hashtag();
+    std::vector<std::string> serialized_warbles = kvstore_->StreamGetRequest(hashtag);
+    for (std::string serialized_warble : serialized_warbles) {
+      warble::Warble warble;
+      warble.ParseFromString(serialized_warble);
+      *streamreply.add_warbles() = warble;
+    }
+    reply->PackFrom(streamreply);
+    return grpc::Status::OK;
+  } else {
+    return grpc::Status(grpc::StatusCode::INVALID_ARGUMENT, "Wrong format for StreamRequest");
+  }
 }
 
 bool WarbleCode::ValExists(const std::string key) {

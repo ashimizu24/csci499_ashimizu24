@@ -25,7 +25,21 @@ public:
   // Return: void
   void Remove(std::string key);
 
+  // Put serialized_warble to corresponding set of hashtag
+  // Parameters: hashtag as key, serialized_warble as value.
+  void PutStream(const std::string hashtag, const std::string serialized_warble);
+
+  // Getting a set of unique serialized_warbles, which 
+  // contain hashtag in their text.
+  // Parameters: hashtag as key
+  // Return: a set of distinct serialized warbles.
+  std::vector<std::string> GetStream(const std::string hashtag);
+
+
 private:
   // database mapping key (prefix+id/username) to serialized struct
   std::unordered_map<std::string, std::string> db_;
+
+  // database of hashtag, which is used to collect hashtag and warbles(unique)
+  std::unordered_map<std::string, std::vector<std::string>> hashtag_db_;
 };

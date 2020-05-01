@@ -5,4 +5,5 @@ enum WarbleTypes {
   kRead = 4,
   kProfile = 5,
   kReply = 6,
+  kStream = 7
 };
