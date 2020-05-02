@@ -22,9 +22,9 @@ std::string KVStoreDb::Get(const std::string key) {
 // Remove data from the database from a given key
 void KVStoreDb::Remove(std::string key) { db_.erase(key); }
 
-void KVStoreDb::PutStream(const std::string hashtag, const std::string serialized_warble) {
-  if (hashtag_db_.find(hashtag) != hashtag_db_.end()) {
-     hashtag_db_[hashtag].push_back(serialized_warble);
+void KVStoreDb::PutStream(const std::string warble_text_word, const std::string serialized_warble) {
+  if (hashtag_db_.find(warble_text_word) != hashtag_db_.end()) {
+     hashtag_db_[warble_text_word].push_back(serialized_warble);
   }
 }
 
