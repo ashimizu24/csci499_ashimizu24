@@ -25,14 +25,14 @@ public:
   // Return: void
   void Remove(std::string key);
 
-  // Put serialized_warble to corresponding set of hashtag
-  // Parameters: hashtag as key, serialized_warble as value.
-  void PutStream(const std::string hashtag, const std::string serialized_warble);
+  // Put serialized_warble to corresponding vector of hashtag
+  // Parameters: warble_text_word as key, serialized_warble as value.
+  void PutStream(const std::string warble_text_word, const std::string serialized_warble);
 
-  // Getting a set of unique serialized_warbles, which 
+  // Getting a vector of unique serialized_warbles, which 
   // contain hashtag in their text.
   // Parameters: hashtag as key
-  // Return: a set of distinct serialized warbles.
+  // Return: a vector of distinct serialized warbles.
   std::vector<std::string> GetStream(const std::string hashtag);
 
 

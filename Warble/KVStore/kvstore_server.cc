@@ -35,15 +35,20 @@ grpc::Status KeyValueStoreImpl::remove(grpc::ServerContext *context,
 grpc::Status KeyValueStoreImpl::StreamGet(grpc::ServerContext *context,
                          const kvstore::GetStreamRequest *request,
                          kvstore::GetStreamReply *reply) {
-  //to be completed
+  std::string hashtag = request->hashtag();
+  std::vector<std::string> serialized_warbles = kvstore_.GetStream(hashtag);
+  for (std::string serialized_warble : serialized_warbles) {
+     std::string* warble = reply->add_serialized_warbles();
+     *warble = serialized_warble;
+  }
+  return grpc::Status::OK;
 }
 
 grpc::Status KeyValueStoreImpl::StreamPut(grpc::ServerContext *context,
                          const kvstore::PutStreamRequest *request,
                          kvstore::PutStreamReply *reply) {
-  //to be completed
-  //for each text in request.warble_texts(): 
-  //if it's a hashtag, add request.serialized_warble() to hashtag_db_
+  kvstore_.PutStream(request->warble_text(), request->serialized_warble());
+  return grpc::Status::OK;
 }
 
 void RunServer() {

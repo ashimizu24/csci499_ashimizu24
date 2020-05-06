@@ -41,7 +41,8 @@ public:
                          kvstore::GetStreamReply *reply) override;
   
   // Function that calls kvstore to put serialized warbles to db
-  // if the text of warble contains some hashtag.
+  // if the word is a hashtag, then kvstore_ will put 
+  // serialized warble to db.
   // Parameters: GRPC server context, PutStream request, PutStream reply
   // Return: GRPC status indicating whether put process is successful.
   grpc::Status StreamPut(grpc::ServerContext *context,

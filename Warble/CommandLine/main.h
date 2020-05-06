@@ -66,4 +66,5 @@ public:
 private:
   std::unique_ptr<func::KeyValueStore::Stub> stub_;
   std::unordered_map<std::string, WarbleTypes> typemap_;
+  std::string ProcessHashtag(const std::string& raw_hashtag);
 };

@@ -38,6 +38,24 @@ DEFINE_bool(
 DEFINE_bool(hook, false, "Initializes all functions. Enter as -hook");
 DEFINE_bool(unhook, false, "Uninitializes all functions. Enter as -unhook");
 
+// This method will extract hashtag('substring begins with “#” 
+// and has one or more non-blank characters after it.') from raw string
+std::string FuncClient::ProcessHashtag(const std::string& raw_hashtag) {
+  std::string hashtag = "";
+  bool meet_pound_sign = false;
+  for (const char& c : raw_hashtag) {
+    if (meet_pound_sign) {
+      if (c == ' ') {
+        break;
+      }
+      hashtag += c;
+    } else if (c == '#') {
+      meet_pound_sign = true;
+    }
+  }
+  return hashtag;
+}
+
 void FuncClient::RegisterUser(const std::string &username) {
   // Objects being passing into stub
   grpc::ClientContext context;
@@ -286,10 +304,17 @@ void FuncClient::Stream(std::string hashtag) {
   // Record length of vector as start index to read.
   // This deals with the situation of identical hashtag
   // queried by several users. 
-  grpc::ClientContext context;
+  std::string processed_hashtag = ProcessHashtag(hashtag);
+  if (processed_hashtag.length() == 0) {
+    std::cout << "Invalid hashtag, Hashtag format : <#HASHTAG>" << std::endl;
+    return;
+  }
 
+  std::cout << "Start receiving streaming message with hashtag : " << 
+    processed_hashtag << "..." << std::endl;
+  grpc::ClientContext context;
   warble::StreamRequest streamrequest;
-  streamrequest.set_hashtag(hashtag);
+  streamrequest.set_hashtag(processed_hashtag);
 
   // Pack StreamRequest into an eventrequest payload
   func::EventRequest request;
@@ -297,7 +322,6 @@ void FuncClient::Stream(std::string hashtag) {
   google::protobuf::Any payload;
   payload.PackFrom(streamrequest);
   *request.mutable_payload() = payload;
-
   // Unpack response from GRPC
   func::EventReply reply;
   warble::StreamReply streamreply;
@@ -314,23 +338,27 @@ void FuncClient::Stream(std::string hashtag) {
   // Stream warbles from kvstore every 100 ms.
   int sleep_time = 100;
   while (true) {
+    grpc::ClientContext context;
+    func::EventRequest event_request;
+    warble::StreamRequest streamrequest;
     google::protobuf::Any payload;
+    streamrequest.set_hashtag(processed_hashtag);
     payload.PackFrom(streamrequest);
-    *request.mutable_payload() = payload;
+    *event_request.mutable_payload() = payload;
+    event_request.set_event_type(kStream);
     // Unpack response from GRPC
-    func::EventReply reply;
+    func::EventReply event_reply;
     warble::StreamReply streamreply;
-    grpc::Status status = stub_->event(&context, request, &reply);
+    grpc::Status status = stub_->event(&context, event_request, &event_reply);
     if(status.ok()) {
-      if(reply.payload().UnpackTo(&streamreply)) {
+      if(event_reply.payload().UnpackTo(&streamreply)) {
         while (stream_start_idx < streamreply.warbles().size()) {
           warble::Warble current_warble = streamreply.warbles()[stream_start_idx];
-          std::cout << "[Warble: " << stream_start_idx <<"] with hashtag <" << hashtag << "> is streamed!\n";
+          std::cout << "[Warble: " << stream_start_idx <<"] with hashtag <" << processed_hashtag << "> is streamed!\n";
           std::cout << "ID: " << current_warble.id() << std::endl;
           std::cout << "Author: " << current_warble.username() << std::endl;
           std::cout << "Time Posted: " << current_warble.timestamp().seconds() << std::endl;
-          std::cout << "Text: " << current_warble.text() << std::endl;
-          std::cout << std::endl << std::endl;
+          std::cout << "Text: " << current_warble.text() << std::endl << std::endl;
           stream_start_idx ++;
         }
       }
@@ -385,6 +413,8 @@ int main(int argc, char *argv[]) {
     func_client.Profile(FLAGS_user);
   } else if (!FLAGS_follow.empty()) {
     func_client.Follow(FLAGS_user, FLAGS_follow);
+  } else if (!FLAGS_stream.empty()) {
+    func_client.Stream(FLAGS_stream);
   }
 
   google::protobuf::ShutdownProtobufLibrary();
