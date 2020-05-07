@@ -478,6 +478,81 @@ TEST_F(Follow, FollowAlreadyFollowing) {
   EXPECT_TRUE(!status.ok());
   EXPECT_EQ(status.error_message(), "Users are already following each other");
 }
+ 
+class Stream : public ::testing::Test {
+protected:
+  void SetUp() override {
+    // Set up user so warble functionality can be tested
+    warble::RegisteruserRequest newuserrequest;
+    newuserrequest.set_username("Aya");
+    requestpayload.PackFrom(newuserrequest);
+
+    // Set up warble
+    warble::WarbleRequest newwarblerequest;
+    newwarblerequest.set_username("Aya");
+    newwarblerequest.set_text("My new warble -1");
+    newwarblerequest.set_parent_id("-1");
+    warblepayload.PackFrom(newwarblerequest);
+  }
+
+  google::protobuf::Any requestpayload;
+  google::protobuf::Any replypayload;
+
+  google::protobuf::Any warblepayload;
+  google::protobuf::Any warblereplypayload;
+
+  google::protobuf::Any replywarblepayload;
+  google::protobuf::Any replywarblereplypayload;
+
+  google::protobuf::Any streamreplypayload;
+  google::protobuf::Any streamreplypayload2;
+
+};
+
+TEST_F(Stream, VerifyIfStreamReceiveNewWarble) {
+  std::unique_ptr<KVBase> kvstore = std::make_unique<KVStoreLocal>();
+  WarbleCode warblecode(std::move(kvstore));
+  warblecode.CreateUser(requestpayload, &replypayload);
+
+  // Stream warbles that contain hashtag----"warble".
+  // By design, it will get vector of warbles before streaming
+  // with size = prev_warbles_size
+  warble::StreamRequest streamrequest;
+  streamrequest.set_hashtag("warble");
+  google::protobuf::Any streampayload;
+  streampayload.PackFrom(streamrequest);
+  warblecode.Stream(streampayload, &streamreplypayload);
+  warble::StreamReply streamreply;
+  streamreplypayload.UnpackTo(&streamreply);
+  int prev_warbles_size = streamreply.warbles().size();
+  
+  // Post a new warble that contains "warble" in text.
+  // Check whether stream can receive the new warble.
+  warble::WarbleRequest newwarblerequest;
+  newwarblerequest.set_username("Aya");
+  newwarblerequest.set_text("My new warble");
+  newwarblerequest.set_parent_id("-1");
+
+  google::protobuf::Any warblepayload;
+  warblepayload.PackFrom(newwarblerequest);
+
+  warble::WarbleReply warblereply;
+  google::protobuf::Any warblereplypayload;
+
+  grpc::Status status = warblecode.CreateWarble(warblepayload, &warblereplypayload);
+  warblereplypayload.UnpackTo(&warblereply);
+
+  // Test whether stream method can receive the posted warble.
+  warble::StreamRequest streamrequest2;
+  streamrequest2.set_hashtag("warble");
+  google::protobuf::Any streampayload2;
+  streampayload2.PackFrom(streamrequest2);
+  warblecode.Stream(streampayload2, &streamreplypayload2);
+  warble::StreamReply streamreply2;
+  streamreplypayload2.UnpackTo(&streamreply2);
+  int current_warbles_size = streamreply2.warbles().size();
+  ASSERT_EQ(prev_warbles_size + 1, current_warbles_size);
+}
 
 class Profile : public ::testing::Test {
 protected:

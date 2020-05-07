@@ -40,10 +40,19 @@ public:
 
   std::vector<std::string> StreamGetRequest(std::string hashtag) {
     // to be completed
+    return kvstore_.GetStream(hashtag);
+
   }
 
   void StreamPutRequest(std::vector<std::string> split_warble_texts, std::string serialized_warble) {
     //to be completed
+    if (split_warble_texts.size() == 0) {
+      return;
+    }
+
+    for (std::string warble_text : split_warble_texts) {
+      kvstore_.PutStream(warble_text, serialized_warble);
+    }
   }
 
 private:
